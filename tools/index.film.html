@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tutee Connect - Study in the USA</title>
+<meta name="description" content="Tutee Connect — USA education experts. Career consultation, college selection, documentation, F-1 visa interviews, education loans, scholarships, post-landing support and family migration. 99% F-1 visa success rate.">
+<meta name="theme-color" content="#05080d">
+<meta property="og:title" content="Tutee Connect — Your Route Map to the American Dream">
+<meta property="og:description" content="Admissions, F-1 visas, loans, scholarships and settlement support for studying in the United States.">
+<meta property="og:image" content="assets/img/hero-poster.jpg">
+<link rel="icon" type="image/png" href="assets/img/logo/favicon-64.png">
+<link rel="apple-touch-icon" href="assets/img/logo/icon-192.png">
+<link rel="preload" href="assets/fonts/manrope-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/fraunces-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/img/hero-poster.jpg" as="image">
+<link rel="stylesheet" href="assets/css/site.css">
+<script>
+  // Old hash-route links (pageus.netlify.app/#/universities) keep working.
+  if (location.hash === '#/universities') location.replace('universities.html');
+  document.documentElement.classList.add('js');
+  window.TCFilm = { p: 0, mode: 'hero', active: true };
+</script>
+<script defer src="assets/js/vendor/gsap.min.js"></script>
+<script defer src="assets/js/vendor/ScrollTrigger.min.js"></script>
+<script defer src="assets/js/vendor/lenis.min.js"></script>
+<script defer src="assets/js/forms.js"></script>
+<script defer src="assets/js/chat.js"></script>
+<script defer src="assets/js/main.js"></script>
+<script type="module" src="assets/js/city.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+%%SPRITE%%
+<!-- ============ HEADER ============ -->
+<header class="nav" data-nav>
+  <div class="nav__inner">
+    <a class="nav__brand" href="#home" aria-label="Tutee Connect — home">
+      <img src="assets/img/logo/logo-400.webp" width="200" height="79" alt="Tutee Connect Logo">
+    </a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="https://tuteeconnect.com/about.html" target="_blank" rel="noopener">About</a>
+      <a href="#services" data-spy="services">Services</a>
+      <a href="universities.html">Universities</a>
+      <a href="#testimonials" data-spy="testimonials">Testimonials</a>
+    </nav>
+    <a class="btn btn--primary btn--sm nav__cta" href="#contact" data-magnetic><span>Evaluate Profile</span><svg class="ico"><use href="#i-arrow"/></svg></a>
+    <button class="nav__burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu" data-menu-open><svg class="ico"><use href="#i-menu"/></svg></button>
+  </div>
+</header>
+
+<div class="menu" id="mobileMenu" data-menu hidden>
+  <div class="menu__head">
+    <img src="assets/img/logo/logo-400.webp" width="160" height="63" alt="Tutee Connect Logo">
+    <button class="menu__close" type="button" aria-label="Close menu" data-menu-close><svg class="ico"><use href="#i-close"/></svg></button>
+  </div>
+  <nav class="menu__links" aria-label="Mobile">
+    <a href="#home" data-menu-link><span>01</span>Home</a>
+    <a href="https://tuteeconnect.com/about.html" target="_blank" rel="noopener"><span>02</span>About</a>
+    <a href="#services" data-menu-link><span>03</span>Services</a>
+    <a href="universities.html"><span>04</span>Universities</a>
+    <a href="#testimonials" data-menu-link><span>05</span>Testimonials</a>
+  </nav>
+  <a class="btn btn--primary btn--block" href="#contact" data-menu-link><span>Evaluate Profile</span><svg class="ico"><use href="#i-arrow"/></svg></a>
+  <p class="menu__foot"><a href="tel:+917010902329">+91 701-090-2329</a> · <a href="mailto:info@tuteeconnect.com">info@tuteeconnect.com</a></p>
+</div>
+
+<!-- section rail (desktop) -->
+<nav class="reelnav" aria-label="Page sections" data-rail>
+  <p class="reelnav__now"><span class="reelnav__label">Reel</span> <b data-rail-now>01</b><span class="reelnav__of">/07</span> <span class="reelnav__name" data-rail-name>Opening</span></p>
+  <ol>
+    <li><a href="#home" data-rail-link="home" data-name="Opening" aria-label="Opening"></a></li>
+    <li><a href="#services" data-rail-link="services" data-name="What We Do" aria-label="Services"></a></li>
+    <li><a href="#universities" data-rail-link="universities" data-name="Universities" aria-label="Universities"></a></li>
+    <li><a href="#scholarships" data-rail-link="scholarships" data-name="Funding" aria-label="Scholarships and funding"></a></li>
+    <li><a href="#relocate" data-rail-link="relocate" data-name="Settle" aria-label="Settle in the USA"></a></li>
+    <li><a href="#testimonials" data-rail-link="testimonials" data-name="Stories" aria-label="Student stories"></a></li>
+    <li><a href="#contact" data-rail-link="contact" data-name="Final Scene" aria-label="Evaluate your profile"></a></li>
+  </ol>
+</nav>
+
+<!-- the city: one fixed WebGL stage shared by the opening and the final scene -->
+<div class="stage" data-stage aria-hidden="true">
+  <div class="stage__poster"></div>
+  <canvas class="stage__canvas" data-city></canvas>
+  <div class="stage__shade" data-stage-shade></div>
+</div>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- countdown leader -->
+<div class="leader" data-leader aria-hidden="true">
+  <svg class="leader__dial" viewBox="0 0 200 200"><circle cx="100" cy="100" r="86"/><circle cx="100" cy="100" r="70"/><path d="M100 0v200M0 100h200"/><path class="leader__sweep" data-leader-sweep d="M100 100 L100 14 A86 86 0 0 1 100 14 Z"/></svg>
+  <span class="leader__num" data-leader-num>3</span>
+  <span class="leader__cap">Tutee Connect presents</span>
+</div>
+
+<main id="main">
+
+<!-- ============ REEL 01 — OPENING (WebGL city, pinned shots) ============ -->
+<section id="home" class="opening" data-section="home" data-opening>
+  <div class="opening__frame" data-opening-frame>
+    <div class="lb lb--top" data-lb-top></div>
+    <div class="lb lb--bot" data-lb-bot></div>
+
+    <div class="hud" aria-hidden="true">
+      <span class="hud__c hud__c--tl"></span><span class="hud__c hud__c--tr"></span><span class="hud__c hud__c--bl"></span><span class="hud__c hud__c--br"></span>
+      <p class="hud__tl"><i class="hud__rec"></i>Rec <span>SC&nbsp;01</span> <span data-hud-take>TK&nbsp;01</span></p>
+      <p class="hud__tr" data-hud-tc>00:00:00:00</p>
+      <p class="hud__bl">40.7128° N · 74.0060° W <span data-hud-loc>New York Harbor</span></p>
+      <p class="hud__br">35mm · f/1.8 · 1/48 · ISO 800</p>
+    </div>
+
+    <!-- shot 1 · title -->
+    <div class="shot shot--title" data-shot="0">
+      <div class="wrap shot__wrap">
+        <p class="chip chip--glass" data-hero-in><span class="chip__dot"></span>USA Education Experts</p>
+        <h1 class="opening__title">
+          <span class="line"><span data-hero-line>Your Route Map</span></span>
+          <span class="line"><span data-hero-line>to the</span></span>
+          <span class="line"><span data-hero-line><em>American Dream.</em></span></span>
+        </h1>
+        <p class="opening__lede" data-hero-in>We don't just facilitate F1 Visas; we transform lives. Join the preferred choice for those seeking excellence in United States higher education.</p>
+        <div class="opening__ctas" data-hero-in>
+          <a class="btn btn--primary" href="#contact" data-magnetic><span>Check Eligibility</span><svg class="ico"><use href="#i-arrow"/></svg></a>
+          <a class="btn btn--ghost" href="#services"><span class="btn__ring"><svg class="ico"><use href="#i-arrow-down"/></svg></span><span>What We Do</span></a>
+        </div>
+      </div>
+      <div class="wrap opening__stats" data-hero-in>
+        <div class="statbar">
+          <div class="stat"><strong data-count="99" data-suffix="%">99%</strong><span>Success Rate</span></div>
+          <div class="stat"><strong data-count="200" data-suffix="+">200+</strong><span>USA Tie-ups</span></div>
+          <div class="stat"><strong data-count="5" data-suffix="k+">5k+</strong><span>Students</span></div>
+          <a class="stat stat--cta" href="#contact"><span>Start Your Journey</span><span class="stat__go"><svg class="ico"><use href="#i-arrow"/></svg></span></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- shot 2 · why the USA -->
+    <div class="shot shot--why" id="why" data-shot="1">
+      <div class="wrap shot__wrap">
+        <p class="slate"><span>Scene 02</span>Why the United States?</p>
+        <h2 class="display display--light" data-shot-words>The world's best universities, and an economy that <em>always needs new talent.</em></h2>
+      </div>
+    </div>
+
+    <!-- shot 3 · subtitles -->
+    <div class="shot shot--subs" data-shot="2">
+      <p class="sub" data-sub>The top destination for international students is still the United States of America. It provides students from all streams with an opportunity to learn and succeed in their chosen subjects that is unmatched.</p>
+      <p class="sub" data-sub>It is the ideal location for students wishing to study and make a living after graduation because of an economy that always needs new talent.</p>
+    </div>
+
+    <!-- shot 4 · credits -->
+    <div class="shot shot--list" data-shot="3">
+      <div class="wrap shot__wrap">
+        <p class="slate"><span>Scene 04</span>Why the United States?</p>
+        <ol class="credits">
+          <li data-credit><span>01</span>World's Best Universities</li>
+          <li data-credit><span>02</span>Extensive OPT and STEM opportunities</li>
+          <li data-credit><span>03</span>Distinctive and diverse curriculum</li>
+          <li data-credit><span>04</span>High level of practical instruction</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="shots" aria-hidden="true">
+      <span class="shots__i" data-shot-mark><i></i><b>Opening</b></span>
+      <span class="shots__i" data-shot-mark><i></i><b>Why USA</b></span>
+      <span class="shots__i" data-shot-mark><i></i><b>Opportunity</b></span>
+      <span class="shots__i" data-shot-mark><i></i><b>Ambition</b></span>
+    </div>
+    <a class="opening__scroll" href="#services" data-hero-in><span>Scroll to roll film</span><i></i></a>
+  </div>
+</section>
+
+<!-- now showing -->
+<div class="ticker" aria-label="Top Ranked USA Universities">
+  <p class="ticker__label">Now showing · Top Ranked USA Universities</p>
+  <div class="ticker__track" data-ticker>
+    <ul>
+      <li>Massachusetts Institute of Technology (MIT)</li><li>Stanford University</li><li>Harvard University</li><li>California Institute of Technology</li><li>University of Chicago</li><li>University of Pennsylvania</li><li>Cornell University</li><li>Columbia University</li><li>Yale University</li><li>Princeton University</li><li>UC Berkeley</li><li>UCLA</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ REEL 02 — SERVICES (pinned film strip) ============ -->
+<section id="services" class="reel reel--services" data-section="services" data-cut="iris">
+  <div class="services__pin" data-strip>
+    <header class="wrap reel__head">
+      <div>
+        <p class="slate"><span>Reel 02</span>What We Do</p>
+        <h2 class="display display--light" data-split>Nine services. <em>One route</em> to your US campus.</h2>
+      </div>
+      <p class="reel__intro" data-reveal>Since we scrutinize every profile from the view of US immigration officers, we choose the right pathway to ensure a <strong>99% success rate</strong> in F-1 Visa clearances.</p>
+    </header>
+
+    <div class="filmstrip" data-strip-view>
+      <div class="filmstrip__track" data-strip-track>
+        <article class="frame" style="--tint:#123a3a;--pos:30% 50%" data-frame data-cursor="View">
+          <div class="frame__media"><img class="frame__img" src="assets/img/photos/team-working-800.webp" alt="" loading="lazy" decoding="async" width="800" height="534"></div>
+          <span class="frame__idx">01 / 09</span>
+          <div class="frame__body">
+            <span class="frame__icon"><svg class="ico"><use href="#i-compass"/></svg></span>
+            <h3>Career Consultation</h3>
+            <p class="frame__tag">Expert Guidance for Your US Journey</p>
+            <button class="frame__open" type="button" data-open-frame><span>View details</span><svg class="ico"><use href="#i-expand"/></svg></button>
+            <div class="frame__full" hidden>
+              <p>Tutee Connect provides an invaluable career consultation at free of cost. The results of this consultation will enhance your self-awareness regarding your profile and illuminate potential pathways for career advancement in the United States. Our skilled consultants will accompany you through each phase of the application process, underscoring our vital role in providing tailored assistance.</p>
+              <p>We take this opportunity to brief you about the USA, including STEM educational benefits, unparalleled employment advantages (CPT/OPT), and the complex scope for eventual transition to H-1B and beyond, all aimed at helping applicants comprehend our exclusive services and developing confidence within their family.</p>
+            </div>
+          </div>
+        </article>
+        <article class="frame" style="--tint:#4a0707;--pos:60% 40%" data-frame data-cursor="View">
+          <div class="frame__media"><img class="frame__img" src="assets/img/photos/students-campus-720.webp" alt="" loading="lazy" decoding="async" width="720" height="480"></div>
+          <span class="frame__idx">02 / 09</span>
+          <div class="frame__body">
+            <span class="frame__icon"><svg class="ico"><use href="#i-languages"/></svg></span>
+            <h3>Language Test</h3>
+            <p class="frame__tag">Master TOEFL, IELTS, and PTE</p>
+            <button class="frame__open" type="button" data-open-frame><span>View details</span><svg class="ico"><use href="#i-expand"/></svg></button>
+            <div class="frame__full" hidden>
+              <p>Tutee Connect helps every applicant prepare rigorously for language ability and standardized tests (GRE/GMAT) required by American universities. We offer various training programs conducted by experts and provide free study materials.</p>
+              <p>To improve language proficiency, students are subjected to several mock tests conducted by the Tutee Connect team before appearing for actual evaluations. Since we have associated with many reputed training institutes for IELTS, TOEFL, PTE, etc., you may be recommended to join there and get trained if needed. Post completion of the training, we will book an official test for you.</p>
+            </div>
+          </div>
+        </article>
+        <article class="frame" style="--tint:#1b2c44;--pos:55% 50%" data-frame data-cursor="View">
+          <div class="frame__media"><img class="frame__img" src="assets/img/photos/usa-city-720.webp" alt="" loading="lazy" decoding="async" width="720" height="480"></div>
+          <span class="frame__idx">03 / 09</span>
+          <div class="frame__body">
+            <span class="frame__icon"><svg class="ico"><use href="#i-landmark"/></svg></span>
+            <h3>College Selection</h3>
+            <p class="frame__tag">Access 200+ Top US Institutions</p>
+            <button class="frame__open" type="button" data-open-frame><span>View details</span><svg class="ico"><use href="#i-expand"/></svg></button>
+            <div class="frame__full" hidden>
+              <p>We maintain fruitful relationships with institutions in tie-up with us across the United States. Our meaningful approach helps us hold about 95% of college tie-ups in our listed network. Based on the applicant's interest and previous academics, our process experts evaluate and suggest the most appropriate STEM or non-STEM courses and colleges across America.</p>
+              <p>Course syllabi, credit requirements, future post-graduation scope, and the universities or colleges that offer the perfect program will be clearly explained to students to help them make the definitive right decision for their American academic needs.</p>
+            </div>
+          </div>
+        </article>
+        <article class="frame" style="--tint:#3b2a12;--pos:85% 40%" data-frame data-cursor="View">
+          <div class="frame__media"><img class="frame__img" src="assets/img/photos/team-working-800.webp" alt="" loading="lazy" decoding="async" width="800" height="534"></div>
+          <span class="frame__idx">04 / 09</span>
+          <div class="frame__body">
+            <span class="frame__icon"><svg class="ico"><use href="#i-file"/></svg></span>
+            <h3>Documentation</h3>
+            <p class="frame__tag">Perfecting SOPs and LORs</p>
+            <button class="frame__open" type="button" data-open-frame><span>View details</span><svg class="ico"><use href="#i-expand"/></svg></button>
+            <div class="frame__full" hidden>
+              <p>Proper documentation will drastically increase your chances to clear all milestones in the US University and Visa application processes. Our process experts will support you by sharing samples, crystal clear requirements, and the strict formatting for every single crucial document (SOP, LOR, Transcripts).</p>
+              <p>Multiple times we review all the submitted documents at the pre-apply stage itself, thus helping us to avoid any obstacles in the process. In our experience, we have successfully managed many complicated cases, and our strong US admission experts will guide you in preparing flawless documentation for both your college applications and the critical Visa process.</p>
+            </div>
+          </div>
+        </article>
+        <article class="frame" style="--tint:#5a1010;--pos:20% 50%" data-frame data-cursor="View">
+          <div class="frame__media"><img class="frame__img" src="assets/img/photos/usa-city-720.webp" alt="" loading="lazy" decoding="async" width="720" height="480"></div>
+          <span class="frame__idx">05 / 09</span>
+          <div class="frame__body">
+            <span class="frame__icon"><svg class="ico"><use href="#i-passport"/></svg></span>
+            <h3>F-1 Visa &amp; Interviews</h3>
+            <p class="frame__tag">Master the Interview. Avoid Refusals.</p>
+            <button class="frame__open" type="button" data-open-frame><span>View details</span><svg class="ico"><use href="#i-expand"/></svg></button>
+            <div class="frame__full" hidden>
+              <p>Tutee Connect extends exclusive services to provide all essential F-1 Student Visa assistance. Starting from the documentation (I-20 issuance, DS-160 filling, SEVIS fee payments), we take you through every meticulous step of the complex US immigration criteria.</p>
+              <p>Our strong processing team will help you produce the most compelling financial profiles and sponsor documents. Most importantly, we provide rigorous one-on-one Mock Interview sessions to train you for the F-1 Visa. Thorough interview preparation is the most critical step to avoid unnecessary visa refusals, helping you confidently articulate your goals to US Consular Officers for a hassle-free F-1 Visa clearance.</p>
+            </div>
+          </div>
+        </article>
+        <article class="frame" style="--tint:#123a3a;--pos:40% 50%" data-frame data-cursor="View">
+          <div class="frame__media"><img class="frame__img" src="assets/img/photos/family-800.webp" alt="" loading="lazy" decoding="async" width="800" height="600"></div>
+          <span class="frame__idx">06 / 09</span>
+          <div class="frame__body">
+            <span class="frame__icon"><svg class="ico"><use href="#i-home"/></svg></span>
+            <h3>E2E Settlement</h3>
+            <p class="frame__tag">From Landing to Green Card</p>
+            <button class="frame__open" type="button" data-open-frame><span>View details</span><svg class="ico"><use href="#i-expand"/></svg></button>
+            <div class="frame__full" hidden>
+              <p>We specialize in providing End-To-End immigration and settlement services for our applicants far beyond the immediate student visa. Apart from your initial F-1 status, we map out long-term strategic pathways for your American career.</p>
+              <p>Our US experts analyze your profile and study motives to determine your long-term method of settlement. We provide explicit guidance on successfully transitioning from F-1 to OPT (Optional Practical Training), securing STEM extensions, finding employer sponsorship for H-1B work visas, and understanding the overarching pathways to permanent residency (Green Card) so you can build a beautiful life in the USA.</p>
+            </div>
+          </div>
+        </article>
+        <article class="frame" style="--tint:#2b1d0c;--pos:80% 40%" data-frame data-cursor="View">
+          <div class="frame__media"><img class="frame__img" src="assets/img/photos/students-campus-720.webp" alt="" loading="lazy" decoding="async" width="720" height="480"></div>
+          <span class="frame__idx">07 / 09</span>
+          <div class="frame__body">
+            <span class="frame__icon"><svg class="ico"><use href="#i-wallet"/></svg></span>
+            <h3>Financial AID</h3>
+            <p class="frame__tag">Loans &amp; US Scholarships</p>
+            <button class="frame__open" type="button" data-open-frame><span>View details</span><svg class="ico"><use href="#i-expand"/></svg></button>
+            <div class="frame__full" hidden>
+              <p>Tutee Connect rigorously helps students and parents who are worried about financial support required by US Border Protection for expensive tuition fees and accommodation. We have direct tie-ups with reputed national banks and private finance sectors to aid students financially by offering both collateral and non-collateral education loans.</p>
+              <p>Besides tuition fees, education loans offered by our partners also finance accommodation during your course time. We will connect you with reputed bank executives for immediate loan sanctions. Also, students demonstrating excellence in academics are actively guided on how to secure lucrative merit-based scholarships and bursaries directly from their chosen American institutions.</p>
+            </div>
+          </div>
+        </article>
+        <article class="frame" style="--tint:#1a3346;--pos:75% 60%" data-frame data-cursor="View">
+          <div class="frame__media"><img class="frame__img" src="assets/img/photos/usa-city-720.webp" alt="" loading="lazy" decoding="async" width="720" height="480"></div>
+          <span class="frame__idx">08 / 09</span>
+          <div class="frame__body">
+            <span class="frame__icon"><svg class="ico"><use href="#i-plane"/></svg></span>
+            <h3>Post-Landing</h3>
+            <p class="frame__tag">Your US Safety Net</p>
+            <button class="frame__open" type="button" data-open-frame><span>View details</span><svg class="ico"><use href="#i-expand"/></svg></button>
+            <div class="frame__full" hidden>
+              <p>Tutee Connect has introduced exclusive and essential post-landing services critical for students newly arrived in America. This service includes all the necessary guidance for survival in a complex foreign country.</p>
+              <p>Once you have landed in the United States, your dedicated consultant from Tutee Connect will arrange or assist you with secure off-campus accommodation, acquiring your Social Security Number (SSN), finding authorized on-campus part-time jobs, setting up US bank accounts, understanding local medical insurance policies, and navigating all other immediate habitat needs.</p>
+            </div>
+          </div>
+        </article>
+        <article class="frame" style="--tint:#4a0707;--pos:45% 45%" data-frame data-cursor="View">
+          <div class="frame__media"><img class="frame__img" src="assets/img/photos/family-800.webp" alt="" loading="lazy" decoding="async" width="800" height="600"></div>
+          <span class="frame__idx">09 / 09</span>
+          <div class="frame__body">
+            <span class="frame__icon"><svg class="ico"><use href="#i-users"/></svg></span>
+            <h3>Family Migration</h3>
+            <p class="frame__tag">Bring Your Loved Ones (F-2/H-4)</p>
+            <button class="frame__open" type="button" data-open-frame><span>View details</span><svg class="ico"><use href="#i-expand"/></svg></button>
+            <div class="frame__full" hidden>
+              <p>We have not just limited our services up to the individual applicant's level; rather, our team works incredibly hard to establish a complete community for you in the United States by helping your family migrate legally and safely alongside you.</p>
+              <p>We provide expert assistance in navigating complex dependent visa applications. Whether you need an F-2 visa for a spouse and children while you study, or an H-4 visa once you transition to the workforce, we support you completely. "We as a sailor of the ship have been motivated to ensure your safe and smooth landing in some of the world's best lands". Join Tutee Connect to establish your family securely.</p>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <div class="wrap reel__foot">
+      <p class="strip__count" aria-hidden="true"><b data-strip-now>01</b> / 09 <span data-strip-name>Career Consultation</span></p>
+      <div class="strip__progress" aria-hidden="true"><i data-strip-bar></i></div>
+      <a class="btn btn--primary" href="#contact" data-magnetic><span>Request a Free Consultation</span><svg class="ico"><use href="#i-arrow"/></svg></a>
+    </div>
+  </div>
+</section>
+
+<!-- service detail sheet -->
+<dialog class="sheet" id="serviceSheet" aria-labelledby="sheetTitle">
+  <div class="sheet__media"><img src="" alt="" data-sheet-img><span class="sheet__icon"><svg class="ico"><use href="#i-compass" data-sheet-icon/></svg></span></div>
+  <div class="sheet__body">
+    <p class="eyebrow" data-sheet-idx>01 / 09</p>
+    <h3 class="sheet__title" id="sheetTitle" data-sheet-title></h3>
+    <p class="sheet__tag" data-sheet-tag></p>
+    <div class="sheet__text" data-sheet-text></div>
+    <div class="sheet__actions">
+      <a class="btn btn--primary" href="#contact" data-sheet-cta><span>Request This Service</span><svg class="ico"><use href="#i-arrow"/></svg></a>
+      <div class="sheet__nav">
+        <button class="iconbtn iconbtn--light" type="button" data-sheet-prev aria-label="Previous service"><svg class="ico"><use href="#i-arrow-left"/></svg></button>
+        <button class="iconbtn iconbtn--light" type="button" data-sheet-next aria-label="Next service"><svg class="ico"><use href="#i-arrow"/></svg></button>
+      </div>
+    </div>
+  </div>
+  <button class="sheet__close" type="button" data-sheet-close aria-label="Close"><svg class="ico"><use href="#i-close"/></svg></button>
+</dialog>
+
+<!-- ============ REEL 03 — UNIVERSITIES (contact sheet zoom) ============ -->
+<section id="universities" class="reel reel--unis" data-section="universities" data-cut="split">
+  <header class="wrap reel__head reel__head--center">
+    <p class="slate"><span>Reel 03</span>Top Ranked Universities</p>
+    <h2 class="display display--light" data-split>A constellation of <em>prestigious</em> campuses.</h2>
+    <p class="reel__intro" data-reveal>We help you secure admissions in some of the most prestigious institutions across the United States.</p>
+  </header>
+  <div class="sheetzoom" data-zoom>
+    <div class="sheetzoom__inner">
+      <div class="contact-sheet" data-contact>
+        <article class="cframe"><span class="cframe__edge">TC 400 · 01</span><span class="cframe__rank">Rank <b>#1</b></span><h3>Massachusetts Institute of Technology (MIT)</h3><p class="cframe__loc"><svg class="ico"><use href="#i-pin"/></svg>Cambridge, MA</p><dl><div><dt>Type</dt><dd>Private</dd></div><div><dt>Accepts</dt><dd>4.0%</dd></div></dl><p class="cframe__prog">Engineering, Computer Science, Physics</p><svg class="cframe__mark" viewBox="0 0 200 140" preserveAspectRatio="none" aria-hidden="true"><path data-mark d="M30 70 C 28 20, 170 12, 178 64 C 186 118, 40 132, 22 82 C 14 56, 60 26, 112 22"/></svg></article>
+        <article class="cframe"><span class="cframe__edge">TC 400 · 02</span><span class="cframe__rank">Rank <b>#2</b></span><h3>Stanford University</h3><p class="cframe__loc"><svg class="ico"><use href="#i-pin"/></svg>Stanford, CA</p><dl><div><dt>Type</dt><dd>Private</dd></div><div><dt>Accepts</dt><dd>3.9%</dd></div></dl><p class="cframe__prog">Business, Computer Science, Engineering</p><svg class="cframe__mark" viewBox="0 0 200 140" preserveAspectRatio="none" aria-hidden="true"><path data-mark d="M28 66 C 30 18, 176 16, 176 70 C 176 120, 36 128, 24 78 C 18 50, 70 24, 120 26"/></svg></article>
+        <article class="cframe"><span class="cframe__edge">TC 400 · 03</span><span class="cframe__rank">Rank <b>#3</b></span><h3>Harvard University</h3><p class="cframe__loc"><svg class="ico"><use href="#i-pin"/></svg>Cambridge, MA</p><dl><div><dt>Type</dt><dd>Private</dd></div><div><dt>Accepts</dt><dd>3.2%</dd></div></dl><p class="cframe__prog">Law, Medicine, Business</p><svg class="cframe__mark" viewBox="0 0 200 140" preserveAspectRatio="none" aria-hidden="true"><path data-mark d="M34 74 C 26 24, 168 10, 180 60 C 190 112, 46 134, 24 86 C 12 60, 64 22, 116 20"/></svg></article>
+        <article class="cframe"><span class="cframe__edge">TC 400 · 04</span><span class="cframe__rank">Rank <b>#4</b></span><h3>California Institute of Technology</h3><p class="cframe__loc"><svg class="ico"><use href="#i-pin"/></svg>Pasadena, CA</p><dl><div><dt>Type</dt><dd>Private</dd></div><div><dt>Accepts</dt><dd>3.9%</dd></div></dl><p class="cframe__prog">Engineering, Physical Sciences</p></article>
+        <article class="cframe"><span class="cframe__edge">TC 400 · 05</span><span class="cframe__rank">Rank <b>#5</b></span><h3>University of Chicago</h3><p class="cframe__loc"><svg class="ico"><use href="#i-pin"/></svg>Chicago, IL</p><dl><div><dt>Type</dt><dd>Private</dd></div><div><dt>Accepts</dt><dd>5.4%</dd></div></dl><p class="cframe__prog">Economics, Public Policy, Math</p></article>
+        <article class="cframe"><span class="cframe__edge">TC 400 · 06</span><span class="cframe__rank">Rank <b>#6</b></span><h3>University of Pennsylvania</h3><p class="cframe__loc"><svg class="ico"><use href="#i-pin"/></svg>Philadelphia, PA</p><dl><div><dt>Type</dt><dd>Private</dd></div><div><dt>Accepts</dt><dd>4.1%</dd></div></dl><p class="cframe__prog">Finance, Nursing, Business</p></article>
+        <article class="cframe"><span class="cframe__edge">TC 400 · 07</span><span class="cframe__rank">Rank <b>#7</b></span><h3>Cornell University</h3><p class="cframe__loc"><svg class="ico"><use href="#i-pin"/></svg>Ithaca, NY</p><dl><div><dt>Type</dt><dd>Private</dd></div><div><dt>Accepts</dt><dd>7.3%</dd></div></dl><p class="cframe__prog">Agriculture, Architecture, Engineering</p></article>
+        <article class="cframe"><span class="cframe__edge">TC 400 · 08</span><span class="cframe__rank">Rank <b>#8</b></span><h3>Columbia University</h3><p class="cframe__loc"><svg class="ico"><use href="#i-pin"/></svg>New York, NY</p><dl><div><dt>Type</dt><dd>Private</dd></div><div><dt>Accepts</dt><dd>3.9%</dd></div></dl><p class="cframe__prog">Social Sciences, Computer Science</p></article>
+        <article class="cframe"><span class="cframe__edge">TC 400 · 09</span><span class="cframe__rank">Rank <b>#9</b></span><h3>Yale University</h3><p class="cframe__loc"><svg class="ico"><use href="#i-pin"/></svg>New Haven, CT</p><dl><div><dt>Type</dt><dd>Private</dd></div><div><dt>Accepts</dt><dd>4.5%</dd></div></dl><p class="cframe__prog">Law, History, Political Science</p></article>
+        <article class="cframe"><span class="cframe__edge">TC 400 · 10</span><span class="cframe__rank">Rank <b>#10</b></span><h3>Princeton University</h3><p class="cframe__loc"><svg class="ico"><use href="#i-pin"/></svg>Princeton, NJ</p><dl><div><dt>Type</dt><dd>Private</dd></div><div><dt>Accepts</dt><dd>4.0%</dd></div></dl><p class="cframe__prog">Public Policy, Economics, History</p></article>
+        <article class="cframe"><span class="cframe__edge">TC 400 · 11</span><span class="cframe__rank">Rank <b>#11</b></span><h3>UC Berkeley</h3><p class="cframe__loc"><svg class="ico"><use href="#i-pin"/></svg>Berkeley, CA</p><dl><div><dt>Type</dt><dd>Public</dd></div><div><dt>Accepts</dt><dd>11.4%</dd></div></dl><p class="cframe__prog">Computer Science, Engineering, Business</p></article>
+        <article class="cframe"><span class="cframe__edge">TC 400 · 12</span><span class="cframe__rank">Rank <b>#12</b></span><h3>UCLA</h3><p class="cframe__loc"><svg class="ico"><use href="#i-pin"/></svg>Los Angeles, CA</p><dl><div><dt>Type</dt><dd>Public</dd></div><div><dt>Accepts</dt><dd>8.6%</dd></div></dl><p class="cframe__prog">Film, Psychology, Biology</p></article>
+      </div>
+    </div>
+  </div>
+  <div class="wrap reel__actions">
+    <a class="btn btn--primary" href="#contact" data-magnetic><span>Evaluate Profile for Top Universities</span><svg class="ico"><use href="#i-arrow"/></svg></a>
+    <a class="btn btn--line btn--line-light" href="universities.html"><span>Browse the full university directory</span><svg class="ico"><use href="#i-arrow"/></svg></a>
+  </div>
+</section>
+
+<!-- ============ REEL 04 — FUNDING ============ -->
+<section id="scholarships" class="reel reel--paper reel--schol" data-section="scholarships" data-cut="wipe">
+  <div class="wrap schol">
+    <div class="schol__copy">
+      <p class="slate slate--dark"><span>Reel 04</span>Full Grants &amp; Aid</p>
+      <h2 class="display" data-split>Unlock Your Potential with <em>Scholarships &amp; Grants</em></h2>
+      <p data-reveal>Studying in the USA is a major investment, but you don't have to carry the entire financial burden alone. Tutee Connect specializes in identifying and securing international student scholarships, departmental grants, and financial aid packages so you can focus on your education.</p>
+      <a class="btn btn--primary" href="#contact" data-magnetic data-reveal><span>Evaluate Scholarship Profile</span><svg class="ico"><use href="#i-arrow"/></svg></a>
+    </div>
+    <div class="slates" data-slates>
+      <span class="schol__ghost" aria-hidden="true">100%</span>
+      <article class="clap" data-clap>
+        <div class="clap__stick" data-clap-stick aria-hidden="true"></div>
+        <div class="clap__board">
+          <div class="clap__meta" aria-hidden="true"><span>Scene <b>01</b></span><span>Take <b>01</b></span><span>Roll <b>A</b></span></div>
+          <span class="clap__icon"><svg class="ico"><use href="#i-award"/></svg></span>
+          <h3>Merit-Based Scholarships</h3>
+          <p>We help students with strong academic backgrounds identify and apply for lucrative merit scholarships directly from prestigious US universities.</p>
+        </div>
+      </article>
+      <article class="clap clap--red" data-clap>
+        <div class="clap__stick" data-clap-stick aria-hidden="true"></div>
+        <div class="clap__board">
+          <div class="clap__meta" aria-hidden="true"><span>Scene <b>02</b></span><span>Take <b>01</b></span><span>Roll <b>A</b></span></div>
+          <span class="clap__icon"><svg class="ico"><use href="#i-grad"/></svg></span>
+          <h3>Full &amp; Partial Grants</h3>
+          <p>Our experts analyze your profile to match you with institutional grants and department-specific fellowships that can cover up to <strong>100% of your tuition</strong>.</p>
+        </div>
+      </article>
+      <article class="clap" data-clap>
+        <div class="clap__stick" data-clap-stick aria-hidden="true"></div>
+        <div class="clap__board">
+          <div class="clap__meta" aria-hidden="true"><span>Scene <b>03</b></span><span>Take <b>01</b></span><span>Roll <b>A</b></span></div>
+          <span class="clap__icon"><svg class="ico"><use href="#i-pen"/></svg></span>
+          <h3>Application Support</h3>
+          <p>Building a compelling narrative is key. We assist in crafting winning scholarship essays and preparing the supplementary documentation for financial aid.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="financial-aid" class="reel reel--fin" data-section="scholarships" data-cut="shutter">
+  <div class="wrap fin">
+    <div class="fin__copy">
+      <p class="slate"><span>Reel 04 · B</span>Financial Support</p>
+      <h2 class="display display--light" data-split>Your American Dream <em>Shouldn't Break the Bank.</em></h2>
+      <p data-reveal>We have exclusive tie-ups with reputed national banks and private finance sectors to aid students financially. From tuition fees to accommodation, we offer both collateral and non-collateral education loans to make your journey seamless.</p>
+      <div class="fin__facts">
+        <div data-reveal><span class="fin__icon"><svg class="ico"><use href="#i-shield"/></svg></span><strong>Non-Collateral</strong><span>Loans available</span></div>
+        <div data-reveal><span class="fin__icon"><svg class="ico"><use href="#i-bank"/></svg></span><strong>Top Banks</strong><span>Lowest interest rates</span></div>
+      </div>
+      <a class="btn btn--primary" href="#contact" data-magnetic><span>Check Loan Eligibility</span><svg class="ico"><use href="#i-arrow"/></svg></a>
+    </div>
+    <div class="fin__credits" data-credits>
+      <p class="fin__assoc" aria-hidden="true">In association with</p>
+      <ul class="fin__logos" aria-label="Loan partners">
+        <li><img src="assets/img/loan/icici.png" alt="ICICI Bank" width="300" height="120" loading="lazy"></li>
+        <li><img src="assets/img/loan/hdfc-credila.jpg" alt="HDFC Credila" width="300" height="120" loading="lazy"></li>
+        <li><img src="assets/img/loan/idfc.jpg" alt="IDFC First Bank" width="300" height="120" loading="lazy"></li>
+        <li><img src="assets/img/loan/incred.jpg" alt="InCred" width="300" height="120" loading="lazy"></li>
+        <li><img src="assets/img/loan/auxilo.jpg" alt="Auxilo" width="300" height="120" loading="lazy"></li>
+        <li><img src="assets/img/loan/avanse.jpg" alt="Avanse" width="300" height="120" loading="lazy"></li>
+        <li><img src="assets/img/loan/union.jpg" alt="Union Bank" width="300" height="120" loading="lazy"></li>
+        <li><img src="assets/img/loan/prodigy.jpg" alt="Prodigy Finance" width="300" height="120" loading="lazy"></li>
+        <li><img src="assets/img/loan/axis.jpg" alt="Axis Bank" width="300" height="120" loading="lazy"></li>
+        <li><img src="assets/img/loan/mpower.jpg" alt="MPOWER Financing" width="300" height="120" loading="lazy"></li>
+      </ul>
+      <p class="fin__more">+ Many more trusted financial partners</p>
+    </div>
+  </div>
+</section>
+
+<section id="earn-while-you-learn" class="reel reel--earn" data-section="scholarships" data-cut="iris">
+  <div class="wrap">
+    <div class="earn__head">
+      <p class="slate"><span>Reel 04 · C</span>Maximize Your ROI</p>
+      <h2 class="display display--light" data-split>Earn While You Learn: <em>Pay Off Your Loan</em></h2>
+      <p data-reveal>We don't just secure your Visa; we ensure you thrive financially. Tutee Connect provides expert assistance upon arrival to help you secure immediate part-time employment. Earn in dollars, manage your living expenses independently, and start crushing your education loan before you even graduate!</p>
+    </div>
+    <div class="boxoffice" data-earn>
+      <article class="ticket">
+        <p class="ticket__fig"><span class="ticket__pre">up to</span><strong data-count="20">20</strong><span class="ticket__unit">hrs / week</span></p>
+        <h3><svg class="ico"><use href="#i-briefcase"/></svg>Part-Time Job Assistance</h3>
+        <p>We provide explicit assistance upon your arrival to help you secure authorized part-time jobs (up to 20 hours/week) quickly and safely.</p>
+      </article>
+      <article class="ticket">
+        <p class="ticket__fig"><strong>$<span data-count="15">15</span>–$<span data-count="20">20</span>+</strong><span class="ticket__unit">per hour</span></p>
+        <h3><svg class="ico"><use href="#i-dollar"/></svg>Competitive Hourly Wages</h3>
+        <p>Roles such as warehouse worker, cashier, and teaching assistant typically pay $15–$20+/hr — enough to cover living expenses and loan EMIs.</p>
+      </article>
+      <article class="ticket">
+        <p class="ticket__fig ticket__fig--icon"><svg class="ico"><use href="#i-trend"/></svg><span class="ticket__unit">EMIs while studying</span></p>
+        <h3><svg class="ico"><use href="#i-wallet"/></svg>Repay Loans Instantly</h3>
+        <p>Earning in dollars lets you start repaying education loan EMIs while still studying — drastically reducing your financial burden.</p>
+      </article>
+    </div>
+    <figure class="earn__quote" data-reveal>
+      <p class="earn__days"><strong data-count="30">30</strong><span>days</span></p>
+      <blockquote>"Our students typically secure part-time roles within their first 30 days of arrival."</blockquote>
+    </figure>
+    <a class="btn btn--light" href="#contact" data-magnetic><span>Calculate Your USA ROI</span><svg class="ico"><use href="#i-arrow"/></svg></a>
+  </div>
+</section>
+
+<!-- ============ REEL 05 — SETTLE (storyboard) ============ -->
+<section id="relocate" class="reel reel--paper reel--settle" data-section="relocate" data-cut="wipe">
+  <div class="wrap reel__head reel__head--center">
+    <p class="slate slate--dark"><span>Reel 05</span>Settle in the USA</p>
+    <h2 class="display" data-split>Your journey doesn't end at <em>graduation.</em></h2>
+    <p class="reel__intro" data-reveal>We guide you through the seamless pathways to build your career and relocate with your family.</p>
+  </div>
+
+  <div class="wrap board" data-route>
+    <div class="board__intro">
+      <h3>The Pathway to Settlement</h3>
+      <p>The US offers structured pathways for international students to transition into the workforce and eventually settle permanently. With our expert guidance, navigating these steps becomes straightforward and stress-free.</p>
+      <div class="board__badge"><span class="board__badge-icon"><svg class="ico"><use href="#i-trend"/></svg></span><div><strong>High Success Rate</strong><span>Our students successfully transition to H-1B visas every year.</span></div></div>
+    </div>
+    <div class="board__panels">
+      <svg class="board__line" viewBox="0 0 1000 120" preserveAspectRatio="none" aria-hidden="true"><path class="board__base" d="M10 60 C 160 -10, 300 130, 500 60 S 840 -10, 990 60"/><path class="board__draw" data-route-line d="M10 60 C 160 -10, 300 130, 500 60 S 840 -10, 990 60"/></svg>
+      <ol class="board__grid">
+        <li class="panel" data-milestone><span class="panel__no">01</span><span class="panel__icon"><svg class="ico"><use href="#i-passport"/></svg></span><h4>F-1 Student Visa</h4><p>Complete your study program. We ensure you pick STEM courses for a 3-year OPT extension.</p></li>
+        <li class="panel" data-milestone><span class="panel__no">02</span><span class="panel__icon"><svg class="ico"><use href="#i-briefcase"/></svg></span><h4>OPT &amp; Employment</h4><p>Secure employment in the US. Work legally for up to 3 years and gain invaluable corporate experience.</p></li>
+        <li class="panel" data-milestone><span class="panel__no">03</span><span class="panel__icon"><svg class="ico"><use href="#i-file"/></svg></span><h4>H-1B Work Visa</h4><p>Transition smoothly with our guidance to an employer-sponsored H-1B visa for long-term work.</p></li>
+        <li class="panel" data-milestone><span class="panel__no">04</span><span class="panel__icon"><svg class="ico"><use href="#i-home"/></svg></span><h4>Permanent Residency</h4><p>Take the final step towards settlement via Employment-Based (EB) Green Card sponsorship.</p></li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="wrap family">
+    <figure class="family__media" data-family>
+      <div class="family__frame"><img src="assets/img/photos/family-800.webp" alt="Happy family relocating together" loading="lazy" decoding="async" width="800" height="600"></div>
+      <figcaption class="family__tag">F-2 · H-4 · Dependents</figcaption>
+    </figure>
+    <div class="family__copy">
+      <h3 class="display display--sm" data-split>Relocating with <em>Your Family?</em></h3>
+      <p data-reveal>We understand the importance of family. The US allows international students and workers to bring their dependents (spouse and unmarried children under 21).</p>
+      <ul class="family__list">
+        <li data-reveal><span class="tick"><svg class="ico"><use href="#i-check"/></svg></span><p><strong>F-2 Visa:</strong> For dependents of F-1 students. Children can attend K-12 schools.</p></li>
+        <li data-reveal><span class="tick"><svg class="ico"><use href="#i-check"/></svg></span><p><strong>H-4 Visa:</strong> For dependents of H-1B workers. Spouses may be eligible for work authorization (EAD).</p></li>
+        <li data-reveal><span class="tick"><svg class="ico"><use href="#i-check"/></svg></span><p><strong>Expert Guidance:</strong> We assist with dependent visa applications, documentation, and interview prep.</p></li>
+      </ul>
+      <a class="btn btn--primary" href="#contact" data-magnetic><span>Get Family Visa Help</span><svg class="ico"><use href="#i-arrow"/></svg></a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ REEL 06 — STORIES (critics' marquee) ============ -->
+<section id="testimonials" class="reel reel--stories" data-section="testimonials" data-cut="iris">
+  <header class="wrap reel__head reel__head--center">
+    <p class="slate"><span>Reel 06</span>Student Stories</p>
+    <h2 class="display display--light" data-split>What Our <em>USA Students</em> Say</h2>
+  </header>
+  <div class="reviews" data-reviews>
+    <div class="reviews__row" data-review-row data-dir="-1">
+      <ul class="reviews__list">
+        <li><figure class="review"><blockquote>"My son has gotten the Visa for his higher studies in one of the reputed American institutions. Despite his complicated profile, the team made this happen."</blockquote><figcaption><span class="avatar">RS</span><span><strong>Ramana S.</strong><small>Parent of Student, USA</small></span></figcaption></figure></li>
+        <li><figure class="review review--accent"><blockquote>"I had a previous visa rejection and was losing hope. My Tutee Connect coordinator completely turned it around and guided me through the entire documentation process successfully."</blockquote><figcaption><span class="avatar">SR</span><span><strong>Sneha R.</strong><small>Graduate Student, California</small></span></figcaption></figure></li>
+        <li><figure class="review"><blockquote>"The comprehensive counseling at Tutee Connect opened my eyes to universities I hadn't even considered. Now I'm loving my semester in Michigan!"</blockquote><figcaption><span class="avatar">KN</span><span><strong>Karthik N.</strong><small>CS Major, Michigan</small></span></figcaption></figure></li>
+        <li><figure class="review review--light"><blockquote>"Tutee Connect helped me perfectly transition my mock interviews, and thanks to them my F1 visa was approved in the very first attempt!"</blockquote><figcaption><span class="avatar">PK</span><span><strong>Priya K.</strong><small>Masters Student, New York</small></span></figcaption></figure></li>
+        <li><figure class="review"><blockquote>"The non-collateral education loan assistance is 100% genuine. They connected me directly with their banking partners and got my financials sorted in record time."</blockquote><figcaption><span class="avatar">RV</span><span><strong>Rahul V.</strong><small>Engineering Major, Illinois</small></span></figcaption></figure></li>
+      </ul>
+    </div>
+    <div class="reviews__row" data-review-row data-dir="1">
+      <ul class="reviews__list">
+        <li><figure class="review review--accent"><blockquote>"From application essays to final visa prep, the entire journey felt so personalized. Highly recommended for anyone aiming for the US."</blockquote><figcaption><span class="avatar">DP</span><span><strong>Divya P.</strong><small>Data Science, Washington</small></span></figcaption></figure></li>
+        <li><figure class="review"><blockquote>"They didn't just help with the admission. The post-landing support for getting my accommodation in Texas was a lifesaver."</blockquote><figcaption><span class="avatar">VM</span><span><strong>Vishal M.</strong><small>Undergrad, Texas</small></span></figcaption></figure></li>
+        <li><figure class="review review--light"><blockquote>"Beyond just the F1 visa, their career consultation for OPT and future H1B pathways gave me the exact clarity I needed before flying out."</blockquote><figcaption><span class="avatar">AD</span><span><strong>Anita D.</strong><small>MBA Candidate, Mass.</small></span></figcaption></figure></li>
+        <li><figure class="review"><blockquote>"Securing a graduate assistantship felt impossible, but with their profile building strategies, I actually got a full tuition waiver!"</blockquote><figcaption><span class="avatar">SJ</span><span><strong>Siddharth J.</strong><small>PhD Student, Ohio</small></span></figcaption></figure></li>
+      </ul>
+    </div>
+  </div>
+  <p class="reviews__hint" aria-hidden="true">Hover to pause</p>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section id="faq" class="reel reel--paper reel--faq" data-section="testimonials" data-cut="wipe">
+  <div class="wrap faq">
+    <div class="faq__head">
+      <p class="slate slate--dark"><span>Behind the scenes</span>FAQ</p>
+      <h2 class="display" data-split>Frequently Asked <em>Questions</em></h2>
+      <p data-reveal>Everything you need to know about studying, financing, and settling in the USA.</p>
+    </div>
+    <div class="faq__list" data-faq>
+      <details class="qa" open><summary><span>What are the basic requirements to study in the USA?</span><i aria-hidden="true"></i></summary><div class="qa__a"><p>Generally, you need a valid passport, strong academic transcripts, standardized test scores (like TOEFL/IELTS for English proficiency, and GRE/GMAT for graduates), letters of recommendation (LORs), and a compelling Statement of Purpose (SOP).</p></div></details>
+      <details class="qa"><summary><span>How does the F1 Student Visa process work?</span><i aria-hidden="true"></i></summary><div class="qa__a"><p>After receiving an acceptance letter and an I-20 form from a US university, you must pay the SEVIS fee, complete the DS-160 visa application online, and schedule a visa interview at the nearest US Embassy or Consulate. We provide comprehensive guidance for every step, including mock interviews.</p></div></details>
+      <details class="qa"><summary><span>Can I get financial aid or an education loan?</span><i aria-hidden="true"></i></summary><div class="qa__a"><p>Yes! We have exclusive tie-ups with top financial institutions and banks to provide both collateral and non-collateral education loans. These loans can cover your tuition fees, accommodation, and living expenses with competitive interest rates.</p></div></details>
+      <details class="qa"><summary><span>Can my family relocate with me to the USA?</span><i aria-hidden="true"></i></summary><div class="qa__a"><p>Absolutely. Your spouse and unmarried children under the age of 21 can accompany you on an F-2 dependent visa while you study. If you later transition to an H-1B work visa, they can stay with you on an H-4 visa.</p></div></details>
+      <details class="qa"><summary><span>What is OPT and how long can I work after graduation?</span><i aria-hidden="true"></i></summary><div class="qa__a"><p>Optional Practical Training (OPT) allows international students to work in the US for up to 12 months in a field related to their study. If you graduate with a STEM degree, you are eligible for an additional 24-month OPT extension, giving you up to 3 years of work authorization.</p></div></details>
+      <details class="qa"><summary><span>Do you help with accommodation and pre-departure?</span><i aria-hidden="true"></i></summary><div class="qa__a"><p>Yes, we partner with top student housing providers to secure safe and comfortable living spaces near your campus. We also conduct comprehensive pre-departure briefings covering US culture, academic expectations, packing lists, and immigration procedures.</p></div></details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ REEL 07 — FINAL SCENE (the city returns at night) ============ -->
+<section id="contact" class="reel reel--final" data-section="contact" data-final>
+  <div class="final__gate" data-final-gate aria-hidden="true"></div>
+  <div class="wrap final">
+    <div class="final__copy">
+      <p class="slate"><span>Reel 07</span>Your next step · Final Scene</p>
+      <h2 class="display display--light" data-split>Evaluate Your <em>USA Profile</em></h2>
+      <p data-reveal>Now it's time to evaluate your profile and get a specific route map to study in the United States.</p>
+      <ul class="final__info">
+        <li data-reveal><span class="final__ico"><svg class="ico"><use href="#i-pin"/></svg></span><div><h4>India Office</h4><p>1st Floor, ALA Corner Complex, Virugambakkam, Chennai - 600092</p></div></li>
+        <li data-reveal><span class="final__ico"><svg class="ico"><use href="#i-pin"/></svg></span><div><h4>UAE Office</h4><p>Tutee Connect LLC FZ Meydan Grandstand, Dubai, U.A.E.</p></div></li>
+        <li data-reveal><span class="final__ico"><svg class="ico"><use href="#i-phone"/></svg></span><div><h4>Call Us</h4><p><a href="tel:+917010902329">+91 701-090-2329</a><br><a href="tel:+971553799068">+971 55-3799068</a></p></div></li>
+        <li data-reveal><span class="final__ico"><svg class="ico"><use href="#i-mail"/></svg></span><div><h4>Email Us</h4><p><a href="mailto:info@tuteeconnect.com">info@tuteeconnect.com</a></p></div></li>
+      </ul>
+    </div>
+    <div class="final__formwrap">
+      <form class="lead glass glass--light" data-lead-form novalidate>
+        <div class="lead__head"><h3>Evaluate Your Profile</h3><p>Fast-track your US admission</p></div>
+        <div data-form-slot></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="foot">
+  <div class="foot__credits" aria-hidden="true"><p>Directed by <b>your ambition</b></p><p>Produced by <b>Tutee Connect</b></p></div>
+  <div class="wrap foot__grid">
+    <div class="foot__brand">
+      <a class="foot__logo" href="#home"><img src="assets/img/logo/logo-400.webp" width="180" height="71" alt="Tutee Connect Logo" loading="lazy"></a>
+      <p>Our vision is to form a society where all the talent champs in the world get connected and support each other to grow in their life.</p>
+      <div class="foot__social">
+        <a href="https://www.facebook.com/tuteeconnect" target="_blank" rel="noopener" aria-label="Facebook"><svg class="ico"><use href="#i-facebook"/></svg></a>
+        <a href="https://www.instagram.com/tuteeconnect/" target="_blank" rel="noopener" aria-label="Instagram"><svg class="ico"><use href="#i-instagram"/></svg></a>
+        <a href="https://x.com/tuteeconnect" target="_blank" rel="noopener" aria-label="X (Twitter)"><svg class="ico"><use href="#i-x"/></svg></a>
+        <a href="https://www.linkedin.com/company/tutee-connect/" target="_blank" rel="noopener" aria-label="LinkedIn"><svg class="ico"><use href="#i-linkedin"/></svg></a>
+      </div>
+    </div>
+    <div>
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a href="https://tuteeconnect.com/" target="_blank" rel="noopener">Home</a></li>
+        <li><a href="https://tuteeconnect.com/about.html" target="_blank" rel="noopener">About Us</a></li>
+        <li><a href="https://tuteeconnect.com/profile-registration.html" target="_blank" rel="noopener">Profile Registration</a></li>
+        <li><a href="https://tuteeconnect.com/contact.html" target="_blank" rel="noopener">Contact Us</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Legal</h4>
+      <ul>
+        <li><a href="https://tuteeconnect.com/terms-and-conditions.html" target="_blank" rel="noopener">Terms and Conditions</a></li>
+        <li><a href="https://tuteeconnect.com/privacy-policy.html" target="_blank" rel="noopener">Privacy Policy</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Reach us</h4>
+      <ul>
+        <li><a href="tel:+917010902329">+91 701-090-2329</a></li>
+        <li><a href="tel:+971553799068">+971 55-3799068</a></li>
+        <li><a href="mailto:info@tuteeconnect.com">info@tuteeconnect.com</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="wrap foot__base"><p>© 2026 Tutee Connect. All Rights Reserved.</p><p>Connecting talent champions worldwide to grow together.</p></div>
+</footer>
+
+<!-- ============ FLOATING: WhatsApp + Tutee AI ============ -->
+<a class="fab fab--wa" href="https://wa.me/917010902329" target="_blank" rel="noopener noreferrer" aria-label="Chat with us on WhatsApp"><svg class="ico"><use href="#i-whatsapp"/></svg><span class="fab__tip">Chat with us!</span></a>
+<div data-chat-root></div>
+<div class="cursor" data-cursor-el aria-hidden="true"><span data-cursor-label></span></div>
+
+</body>
+</html>

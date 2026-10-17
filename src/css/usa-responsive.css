@@ -1,0 +1,112 @@
+/* =====================================================================
+   MOTION-OFF (reduced motion / no GSAP)
+   ===================================================================== */
+.motion-off .hero { height: auto; }
+.motion-off .hero__stage { position: relative; height: auto; min-height: 0; overflow: visible; }
+.motion-off .hero__frame { position: relative; height: 100vh; height: 100svh; min-height: 600px; overflow: hidden; }
+.motion-off .hero__after { position: relative; inset: auto; opacity: 1; pointer-events: auto; height: 100vh; height: 100svh; min-height: 640px; background-color: var(--navy); }
+.motion-off .stamp { opacity: 1; transform: rotate(var(--r)); }
+.motion-off .pp__cover { transform: rotateY(-180deg); }
+.motion-off .why__pin { height: auto; min-height: 0; padding-bottom: 60px; }
+.motion-off .why__pano { position: absolute; inset: 0; width: 100%; }
+.motion-off .why__img { width: 100%; height: 100%; }
+.motion-off .why__reasons { position: relative; bottom: auto; margin-top: 60px; flex-wrap: wrap; }
+.motion-off .why__reasons li { flex: 1 1 220px; opacity: 1; }
+.motion-off .final__window { clip-path: none; }
+.motion-off .final__img { transform: none; }
+.motion-off [data-split] .wi { transform: none !important; }
+
+/* =====================================================================
+   RESPONSIVE
+   ===================================================================== */
+@media (max-width: 1240px) { .route { display: none; } }
+@media (max-width: 1100px) {
+  .nav__links a { padding: 10px 11px; }
+  .finder__grid { grid-template-columns: minmax(0, 1fr); }
+  .finder__mapwrap { position: relative; top: 0; max-width: 760px; }
+}
+@media (max-width: 980px) {
+  .nav__links, .nav__cta { display: none; }
+  .nav__burger { display: grid; }
+  .finder__head, .svc__head, .fund__cols, .loans__grid, .visa__grid, .stories__grid, .faq__grid, .final__grid { grid-template-columns: minmax(0, 1fr); }
+  .why__intro { grid-template-columns: minmax(0, 1fr); }
+  .why__intro h2 { grid-row: auto; }
+  .faq__head, .calc { position: static; }
+  .earn__copy, .calc__cols { grid-template-columns: minmax(0, 1fr); }
+  .stories__dots { grid-column: 1; }
+  .foot__grid { grid-template-columns: 1fr 1fr; }
+  .final__formwrap { max-width: 560px; }
+  .sheet[open] { grid-template-columns: 1fr; grid-template-rows: 220px auto; }
+}
+@media (max-width: 760px) {
+  .dx__ui { padding-top: 80px; grid-template-rows: auto 1fr auto auto; }
+  .dx__title { font-size: 1.45rem; }
+  .dx__now { margin-bottom: 12px; }
+  .dx__city { font-size: clamp(2.4rem, 12vw, 3.2rem); }
+  .dx__desc { font-size: 1rem; margin-top: 8px; }
+  .dx__tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: calc(var(--gutter) * -1); padding-inline: var(--gutter); }
+  .dx__tab { flex: none; height: 34px; font-size: 12.5px; }
+  .dx__stack { right: 50%; top: 47%; width: min(82vw, 380px); transform: translate(50%, -50%); }
+  .dx__hint { display: none; }
+  .dx__shade { background: linear-gradient(180deg, rgba(6,13,22,.75) 0%, rgba(6,13,22,0) 28%, rgba(6,13,22,0) 52%, rgba(6,13,22,.92) 72%); }
+  .pc__back { grid-template-columns: 1fr; }
+  .pc__addr { display: none; }
+  .pc__msg { border: 0; padding: 0; }
+  .why__reasons li { opacity: 1; }
+  body { font-size: 16px; }
+  .nav { inset: 10px 0 auto; }
+  .nav__brand { padding: 0; }
+  .nav__brand img { height: 40px; }
+  .hero { height: 330vh; }
+  .hero__copy { grid-template-columns: 1fr; bottom: 86px; gap: 14px; }
+  .hero__side { justify-self: start; }
+  .hero__title { font-size: clamp(2.1rem, 9.6vw, 2.9rem); }
+  .hero__kicker { font-size: 12.5px; margin-bottom: 10px; }
+  .hero__lede { font-size: 14.5px; }
+  .hero__ctas { margin-top: 16px; gap: 10px; }
+  .hero__ctas .btn { --h: 48px; padding: 0 18px; font-size: 14px; }
+  .hero__veil { background: linear-gradient(180deg, rgba(8,20,36,.5) 0%, rgba(8,20,36,0) 18%, rgba(8,20,36,0) 42%, rgba(8,20,36,.8) 62%, rgba(8,20,36,.95) 100%); }
+  .pp-wrap { padding-top: 84px; }
+  .pp-t { font-size: clamp(1.9rem, 9vw, 2.6rem); }
+  .pp-scene { --pw: min(46vw, calc(52vh / 1.4)); --ph: calc(var(--pw) * 1.4); }
+  .pp__pagehead { padding: 10px 10px 0; font-size: 7.5px; }
+  .pp__bio { padding: 12% 10px 0; gap: 8px; }
+  .pp__bio dd { font-size: .8rem; }
+  .pp__bio dt { font-size: 7px; }
+  .pp__pagefoot { font-size: 9px; bottom: 8px; }
+  .hero__scroll { bottom: 10px; gap: 6px; right: 12px; }
+  .hero__credit { display: none; }
+  .why__pin { min-height: 0; height: auto; padding-bottom: 40px; }
+  .why__pano { position: relative; height: 46vh; width: 100%; overflow: hidden; }
+  .why__img { width: auto; height: 100%; }
+  .why__shade { display: none; }
+  .why__intro { padding-top: 34px; }
+  .why__reasons { position: relative; bottom: auto; flex-direction: column; gap: 14px; margin-top: 34px; }
+  .why__credit { position: relative; right: auto; bottom: auto; padding: 16px var(--gutter) 0; }
+  .uni { grid-template-columns: 40px minmax(0, 1fr); }
+  .uni__add { grid-column: 2; justify-self: start; }
+  .fund__hero { height: 70vh; }
+  .visa__tabs { grid-template-columns: 1fr 1fr; }
+  .visa__facts { grid-template-columns: 1fr; }
+  .final__window { clip-path: none !important; }
+  .final__img { transform: none !important; }
+  .final__info { grid-template-columns: 1fr; }
+  .field__row { grid-template-columns: 108px minmax(0, 1fr); }
+  .foot__grid { grid-template-columns: 1fr; gap: 30px; }
+  .fab { right: 16px; }
+  .fab--wa { bottom: 16px; width: 54px; height: 54px; }
+  .fab--ai { bottom: 82px; width: 54px; height: 54px; padding-left: 5px; }
+  .chat { inset: 0; width: 100%; height: 100%; border-radius: 0; border: 0; }
+}
+@media (max-width: 1024px) {
+  .fab { transition: opacity .35s, transform .45s var(--ease); }
+  .at-top .fab { opacity: 0; pointer-events: none; transform: translateY(24px); }
+}
+@media (max-height: 760px) and (min-width: 761px) {
+  .hero__copy { bottom: 74px; }
+  .hero__title { font-size: clamp(2rem, 3.2vw, 3rem); }
+  .hero__ctas { margin-top: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+}

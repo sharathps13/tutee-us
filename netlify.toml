@@ -1,0 +1,25 @@
+# Tutee Connect — Study in the USA
+# Plain static site: no build step on Netlify. (The WebGL hero bundle assets/js/hero.js
+# is pre-built from src/hero/ — see README.md if you change the 3D scene.)
+
+[build]
+  publish = "."
+
+# Old SPA hash links (pageus.netlify.app/#/universities) are handled in index.html.
+[[redirects]]
+  from = "/universities"
+  to = "/universities.html"
+  status = 301
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://thumb.wikimedia.org https://upload.wikimedia.org; font-src 'self'; connect-src 'self' https://api.web3forms.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Content-Type-Options = "nosniff"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>University Atlas: every US university — Tutee Connect USA</title>
+<meta name="description" content="All 3,969 accredited, degree-granting US colleges and universities on one map. Search, filter by state, type and size, shortlist and apply with Tutee Connect.">
+<meta name="theme-color" content="#0b2131">
+<link rel="icon" type="image/png" href="assets/img/logo/favicon-64.png">
+<link rel="apple-touch-icon" href="assets/img/logo/icon-192.png">
+<link rel="preload" href="assets/fonts/manrope-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/fraunces-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/site.css">
+<script>document.documentElement.classList.add('js');</script>
+<script defer src="assets/js/universities-data.js"></script>
+<script defer src="assets/js/us-institutions.js"></script>
+<script defer src="assets/js/forms.js"></script>
+<script defer src="assets/js/main.js"></script>
+<script defer src="assets/js/universities.js"></script>
+</head>
+<body class="page-dir">
+<a class="skip" href="#directory">Skip to directory</a>
+%%SPRITE%%
+%%HEADER%%
+<main id="main">
+  <section class="atlas" id="directory" data-atlas>
+    <div class="atlas__hero wrap">
+      <a class="atlas__back" href="index.html#finder"><span aria-hidden="true">←</span> Back to top universities</a>
+      <p class="atlas__k"><span></span>University Atlas · United States</p>
+      <h1 class="atlas__title">Every university in the <em>USA</em>, on one map.</h1>
+      <p class="atlas__lede">All <b data-stat="total">3,969</b> accredited, degree-granting colleges and universities across the 50 states and Washington, D.C. Search them, filter them, and shortlist the ones you want us to evaluate you for.</p>
+      <dl class="atlas__stats">
+        <div><dt>Four-year institutions</dt><dd data-stat="four">0</dd></div>
+        <div><dt>Public universities</dt><dd data-stat="public">0</dd></div>
+        <div><dt>Top research (R1)</dt><dd data-stat="r1">0</dd></div>
+        <div><dt>Tutee Connect featured</dt><dd data-stat="featured">0</dd></div>
+      </dl>
+    </div>
+
+    <div class="atlas__bar" data-atlas-bar>
+      <div class="wrap atlas__barin">
+        <label class="atlas__search"><svg class="ico" aria-hidden="true"><use href="#i-compass"/></svg><span class="sr-only">Search universities</span>
+          <input type="search" placeholder="Search by university, city, state or program…" autocomplete="off" spellcheck="false" data-a-q></label>
+        <div class="atlas__seg" role="group" aria-label="Type" data-a-group="control">
+          <button type="button" data-v="" aria-pressed="true">All</button><button type="button" data-v="1" aria-pressed="false">Public</button><button type="button" data-v="2" aria-pressed="false">Private non-profit</button><button type="button" data-v="3" aria-pressed="false">For-profit</button>
+        </div>
+        <div class="atlas__seg" role="group" aria-label="Level" data-a-group="level">
+          <button type="button" data-v="" aria-pressed="true">Any level</button><button type="button" data-v="1" aria-pressed="false">4-year</button><button type="button" data-v="2" aria-pressed="false">2-year</button>
+        </div>
+        <div class="atlas__sel"><select data-a-state aria-label="Filter by state"><option value="" data-label="All states" data-sub="3,969">All states</option></select></div>
+        <div class="atlas__sel"><select data-a-sort aria-label="Sort results"><option value="feat" data-short="Featured first" data-sub="Our picks on top">Featured first</option><option value="az" data-short="A–Z" data-sub="By name">A–Z</option><option value="size" data-short="Largest first" data-sub="By enrolment">Largest first</option></select></div>
+      </div>
+      <div class="wrap atlas__chips" data-a-chips>
+        <button type="button" class="achip achip--feat" data-chip="feat" aria-pressed="false">★ Tutee Connect featured</button>
+        <button type="button" class="achip" data-chip="cat:R1" aria-pressed="false">Research · R1</button>
+        <button type="button" class="achip" data-chip="cat:R2" aria-pressed="false">Research · R2</button>
+        <button type="button" class="achip" data-chip="cat:D" aria-pressed="false">Doctoral &amp; professional</button>
+        <button type="button" class="achip" data-chip="cat:M" aria-pressed="false">Master's universities</button>
+        <button type="button" class="achip" data-chip="cat:B" aria-pressed="false">Bachelor's &amp; liberal arts</button>
+        <button type="button" class="achip" data-chip="cat:A" aria-pressed="false">Community colleges</button>
+        <button type="button" class="achip" data-chip="cat:S" aria-pressed="false">Special focus</button>
+        <button type="button" class="achip" data-chip="hbcu" aria-pressed="false">HBCU</button>
+        <button type="button" class="achip" data-chip="size:5" aria-pressed="false">20,000+ students</button>
+        <button type="button" class="achip" data-chip="size:4" aria-pressed="false">10–20k</button>
+        <button type="button" class="achip" data-chip="size:3" aria-pressed="false">5–10k</button>
+        <button type="button" class="achip" data-chip="size:2" aria-pressed="false">1–5k</button>
+        <button type="button" class="achip" data-chip="size:1" aria-pressed="false">Under 1,000</button>
+        <button type="button" class="achip achip--reset" data-a-reset hidden>Clear all</button>
+      </div>
+    </div>
+
+    <div class="wrap atlas__body">
+      <div class="atlas__mapcol">
+        <div class="atlas__map" data-a-map>
+          <svg class="atlas__states" viewBox="0 0 975 610" aria-hidden="true" data-a-states>%%ATLAS_STATES%%</svg>
+          <canvas class="atlas__dots" data-a-canvas aria-hidden="true"></canvas>
+          <div class="atlas__tip" data-a-tip hidden></div>
+          <div class="atlas__card" data-a-card hidden></div>
+        </div>
+        <div class="atlas__legend">
+          <span><i class="lg lg--pub"></i>Public</span><span><i class="lg lg--np"></i>Private non-profit</span><span><i class="lg lg--fp"></i>For-profit</span><span><i class="lg lg--feat"></i>Tutee Connect featured</span>
+          <span class="atlas__hintmap">Hover a dot · click a state to filter</span>
+        </div>
+      </div>
+      <div class="atlas__list">
+        <div class="atlas__count" aria-live="polite"><b data-a-count>3,969</b> <span data-a-countword>institutions</span><span class="atlas__where" data-a-where></span></div>
+        <ol class="atlas__results" data-a-results></ol>
+        <div class="atlas__empty" data-a-empty hidden><p>No institutions match these filters.</p><button type="button" class="btn btn--line btn--sm" data-a-reset2><span>Clear filters</span></button></div>
+        <div class="atlas__more" data-a-more aria-hidden="true"></div>
+      </div>
+    </div>
+    <p class="wrap atlas__src">Source: U.S. Department of Education, National Center for Education Statistics, IPEDS Institutional Characteristics 2024 (active, degree-granting institutions in the 50 states and D.C.). Carnegie categories from the 2021 Basic Classification. Featured ranks and programs: Tutee Connect directory.</p>
+  </section>
+</main>
+
+<div class="selbar glass glass--dark" data-selbar hidden>
+  <div class="selbar__count"><span data-sel-count>0</span> <span data-sel-word>University</span> shortlisted</div>
+  <button class="btn btn--primary btn--sm" type="button" data-proceed><span>Evaluate my shortlist</span><svg class="ico"><use href="#i-arrow"/></svg></button>
+</div>
+
+<dialog class="apply" id="applyDialog" aria-labelledby="applyTitle">
+  <div class="apply__head"><h3 id="applyTitle">Submit Application</h3><button type="button" class="iconbtn iconbtn--light" data-apply-close aria-label="Close"><svg class="ico"><use href="#i-close"/></svg></button></div>
+  <form class="lead lead--flat" data-apply-form novalidate><div data-form-slot></div></form>
+</dialog>
+%%FOOTER%%
+</body>
+</html>

@@ -1,0 +1,6 @@
+/* directory page helpers */
+.section--paper { background: var(--paper); color: var(--text); }
+.page-dir { background: var(--paper); }
+.page-dir .foot { z-index: 1; }
+/* single-file build: directory view hides the film furniture */
+body.page-dir .stage, body.page-dir .leader, body.page-dir .reelnav, body.page-dir .grain { display: none; }

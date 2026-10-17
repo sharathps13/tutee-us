@@ -1,0 +1,89 @@
+{
+ "paper": "The Tutee Times",
+ "motto": "All the news a US-bound student needs",
+ "editions": [
+  {
+   "date": "2026-10-16",
+   "sample": true,
+   "breaking": "",
+   "ear": {
+    "label": "Intake watch",
+    "text": "Fall 2027 applications: many universities open their portals this autumn — check each deadline."
+   },
+   "lead": {
+    "section": "Visa",
+    "headline": "Your F-1 Visa, Step by Step",
+    "deck": "From I-20 to interview day: the four steps every admitted student follows",
+    "body": [
+     "After a US university accepts you, it issues your Form I-20. You then pay the SEVIS fee, complete the DS-160 application online and book an interview at the nearest US Embassy or Consulate.",
+     "Strong financial documents and clear answers about your study plans matter most on interview day. Tutee Connect runs one-on-one mock interviews so you walk in prepared. The final decision always rests with the consular officer."
+    ],
+    "img": "assets/img/photos/college-steps-1600.webp",
+    "caption": "From your I-20 to interview day, every step has a checklist.",
+    "source": "Tutee Connect counselling team",
+    "url": "",
+    "cta": "contact"
+   },
+   "stories": [
+    {
+     "section": "Work",
+     "headline": "Up to 36 Months of Practical Training",
+     "deck": "How OPT and the STEM OPT extension may add up",
+     "body": [
+      "Eligible F-1 graduates may work for up to 12 months on OPT. Graduates of qualifying STEM degrees may apply for a further 24-month extension, subject to USCIS approval."
+     ],
+     "source": "Tutee Connect",
+     "cta": "opt"
+    },
+    {
+     "section": "Funding",
+     "headline": "Loans Without Collateral, Explained",
+     "deck": "Our banking partners cover tuition and living costs",
+     "body": [
+      "Tutee Connect works with reputed banks and lenders on both collateral and non-collateral education loans, and connects students directly with bank executives."
+     ],
+     "source": "Tutee Connect",
+     "cta": "loans"
+    },
+    {
+     "section": "Campus",
+     "headline": "Earn While You Learn",
+     "deck": "On-campus jobs during term",
+     "body": [
+      "On an F-1 visa you can usually work on campus for up to 20 hours a week while classes are in session, and more during official breaks."
+     ],
+     "source": "Tutee Connect",
+     "cta": "calc"
+    },
+    {
+     "section": "Admissions",
+     "headline": "English Tests: Which One to Take?",
+     "deck": "TOEFL, IELTS, PTE and Duolingo",
+     "body": [
+      "Most US universities accept TOEFL or IELTS, and many accept PTE or the Duolingo English Test. Minimum scores vary, so we match tests to your shortlist."
+     ],
+     "source": "Tutee Connect"
+    },
+    {
+     "section": "Tutee News",
+     "headline": "Your First Counselling Session Is Free",
+     "deck": "Talk to our Chennai and Dubai teams",
+     "body": [
+      "Your first career consultation with Tutee Connect is free. Share your details and a counsellor will map out your US route with you."
+     ],
+     "source": "Tutee Connect",
+     "cta": "contact"
+    },
+    {
+     "section": "Life",
+     "headline": "Landing Day Checklist",
+     "deck": "SSN, bank account, insurance and housing",
+     "body": [
+      "Our post-landing support helps with accommodation, your Social Security Number, a US bank account and understanding medical insurance."
+     ],
+     "source": "Tutee Connect"
+    }
+   ]
+  }
+ ]
+}
