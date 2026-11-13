@@ -41,7 +41,7 @@ html = html.replace("  if (location.hash === '#/universities') location.replace(
 
 # --- directory view, taken from universities.html ---
 dir_main = re.search(r'<main id="main">(.*?)</main>', dirpage, re.S).group(1)
-dir_extra = dirpage[dirpage.index('<div class="selbar'):dirpage.index('<!-- ============ FOOTER')]
+dir_extra = dirpage[dirpage.index('<dialog class="apply"'):dirpage.index('<!-- ============ FOOTER')]
 dir_view = ('<div id="dirView" class="page-dir" hidden>' + dir_main + dir_extra + '</div>\n')
 html = html.replace('<main id="main">', '<main id="main" data-landing>', 1)
 html = html.replace('<!-- ============ FOOTER ============ -->', dir_view + '\n<!-- ============ FOOTER ============ -->', 1)
@@ -102,10 +102,11 @@ router = r"""
 """
 
 scripts = '<script>window.TC_DIR_BASE = "#/universities";</script>\n' + ''.join('<script>\n' + safe_js(inline_assets(js(n))) + '\n</script>\n' for n in
-                  ['vendor/gsap.min.js', 'vendor/ScrollTrigger.min.js', 'vendor/lenis.min.js', 'universities-data.js', 'us-institutions.js', 'forms.js'])
+                  ['vendor/gsap.min.js', 'vendor/ScrollTrigger.min.js', 'vendor/lenis.min.js', 'universities-data.js', 'us-institutions.js', 'forms.js', 'shortlist.js', 'quick.js'])
 scripts += '<script>\n' + router + '\n</script>\n'
 scripts += '<script>\n' + safe_js(inline_assets(js('main.js'))) + '\n</script>\n'
 scripts += '<script>\n' + safe_js(inline_assets(js('universities.js'))) + '\n</script>\n'
+scripts += '<script>\n' + safe_js(inline_assets(js('askwave.js'))) + '\n</script>\n'
 
 html = html.replace('</body>', scripts + '</body>')
 html = inline_assets(html)

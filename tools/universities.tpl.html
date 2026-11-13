@@ -15,6 +15,7 @@
 <script defer src="assets/js/universities-data.js"></script>
 <script defer src="assets/js/us-institutions.js"></script>
 <script defer src="assets/js/forms.js"></script>
+<script defer src="assets/js/shortlist.js"></script>
 <script defer src="assets/js/main.js"></script>
 <script defer src="assets/js/universities.js"></script>
 </head>
@@ -24,6 +25,7 @@
 %%HEADER%%
 <main id="main">
   <section class="atlas" id="directory" data-atlas>
+    <div class="atlas__cover" aria-hidden="true"><img src="assets/img/atlas-campus-2400.webp" srcset="assets/img/atlas-campus-1200.webp 1200w, assets/img/atlas-campus-2400.webp 2400w" sizes="(max-width: 760px) 100vw, 62vw" alt="" width="2400" height="1600" fetchpriority="high" decoding="async"></div>
     <div class="atlas__hero wrap">
       <a class="atlas__back" href="index.html#finder"><span aria-hidden="true">←</span> Back to top universities</a>
       <p class="atlas__k"><span></span>University Atlas · United States</p>
@@ -92,11 +94,6 @@
     <p class="wrap atlas__src">Source: U.S. Department of Education, National Center for Education Statistics, IPEDS Institutional Characteristics 2024 (active, degree-granting institutions in the 50 states and D.C.). Carnegie categories from the 2021 Basic Classification. Featured ranks and programs: Tutee Connect directory.</p>
   </section>
 </main>
-
-<div class="selbar glass glass--dark" data-selbar hidden>
-  <div class="selbar__count"><span data-sel-count>0</span> <span data-sel-word>University</span> shortlisted</div>
-  <button class="btn btn--primary btn--sm" type="button" data-proceed><span>Evaluate my shortlist</span><svg class="ico"><use href="#i-arrow"/></svg></button>
-</div>
 
 <dialog class="apply" id="applyDialog" aria-labelledby="applyTitle">
   <div class="apply__head"><h3 id="applyTitle">Submit Application</h3><button type="button" class="iconbtn iconbtn--light" data-apply-close aria-label="Close"><svg class="ico"><use href="#i-close"/></svg></button></div>

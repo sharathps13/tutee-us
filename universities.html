@@ -15,6 +15,7 @@
 <script defer src="assets/js/universities-data.js"></script>
 <script defer src="assets/js/us-institutions.js"></script>
 <script defer src="assets/js/forms.js"></script>
+<script defer src="assets/js/shortlist.js"></script>
 <script defer src="assets/js/main.js"></script>
 <script defer src="assets/js/universities.js"></script>
 </head>
@@ -71,7 +72,7 @@
 <header class="nav" data-nav>
   <div class="nav__inner">
     <a class="nav__brand" href="index.html#home" aria-label="Tutee Connect — home">
-      <img src="assets/img/logo/logo-hd-480.webp" width="196" height="80" alt="Tutee Connect Logo" decoding="async">
+      <img src="assets/img/logo/logo-tc-600.png" srcset="assets/img/logo/logo-tc-600.png 1x, assets/img/logo/logo-tc-1200.png 2x" width="600" height="245" alt="Tutee Connect Logo" decoding="async">
     </a>
     <nav class="nav__links" aria-label="Primary">
       <a href="https://tuteeconnect.com/about.html" target="_blank" rel="noopener">About</a>
@@ -79,31 +80,36 @@
       <a href="universities.html" class="is-active" aria-current="page">Universities</a>
       <a href="index.html#testimonials" >Testimonials</a>
     </nav>
-    <a class="btn btn--primary btn--sm nav__cta" href="index.html#contact" data-magnetic><span>Evaluate Profile</span><svg class="ico"><use href="#i-arrow"/></svg></a>
+    <a class="btn btn--primary btn--sm btn--gem nav__cta" href="index.html#contact" data-magnetic><svg class="ico btn__spark" aria-hidden="true"><use href="#i-sparkle"/></svg><span>Evaluate Profile</span></a>
     <button class="nav__burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu" data-menu-open><svg class="ico"><use href="#i-menu"/></svg></button>
   </div>
 </header>
 
 <div class="menu" id="mobileMenu" data-menu hidden>
+  <div class="menu__glow" aria-hidden="true"></div>
   <div class="menu__head">
-    <img src="assets/img/logo/logo-hd-480.webp" width="160" height="65" alt="Tutee Connect Logo">
+    <img src="assets/img/logo/logo-tc-600.png" srcset="assets/img/logo/logo-tc-600.png 1x, assets/img/logo/logo-tc-1200.png 2x" width="600" height="245" alt="Tutee Connect Logo" decoding="async">
     <button class="menu__close" type="button" aria-label="Close menu" data-menu-close><svg class="ico"><use href="#i-close"/></svg></button>
   </div>
+  <p class="menu__k">Your route to the USA</p>
   <nav class="menu__links" aria-label="Mobile">
-    <a href="index.html#home"><span>01</span>Home</a>
-    <a href="https://tuteeconnect.com/about.html" target="_blank" rel="noopener"><span>02</span>About</a>
-    <a href="index.html#services"><span>03</span>Services</a>
-    <a href="index.html#finder"><span>04</span>Universities</a>
-    <a href="index.html#testimonials"><span>05</span>Testimonials</a>
+    <a href="index.html#home" style="--i:0"><span>01</span><b>Home</b><svg class="menu__arr" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 5.5 15.5 10 11 14.5"/></svg></a>
+    <a href="https://tuteeconnect.com/about.html" target="_blank" rel="noopener" style="--i:1"><span>02</span><b>About</b><svg class="menu__arr" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 5.5 15.5 10 11 14.5"/></svg></a>
+    <a href="index.html#services" style="--i:2"><span>03</span><b>Services</b><svg class="menu__arr" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 5.5 15.5 10 11 14.5"/></svg></a>
+    <a href="index.html#finder" style="--i:3"><span>04</span><b>Universities</b><svg class="menu__arr" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 5.5 15.5 10 11 14.5"/></svg></a>
+    <a href="index.html#testimonials" style="--i:4"><span>05</span><b>Testimonials</b><svg class="menu__arr" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 5.5 15.5 10 11 14.5"/></svg></a>
   </nav>
-  <a class="btn btn--primary btn--block" href="index.html#contact"><span>Evaluate Profile</span><svg class="ico"><use href="#i-arrow"/></svg></a>
-  <p class="menu__foot"><a href="tel:+917010902329">+91 701-090-2329</a> · <a href="mailto:info@tuteeconnect.com">info@tuteeconnect.com</a></p>
+  <ul class="menu__proof" aria-label="Tutee Connect in numbers"><li><b>99%</b><span>F-1 visa success rate</span></li><li><b>200+</b><span>USA university tie-ups</span></li><li><b>5K+</b><span>Students guided</span></li></ul>
+  <div class="menu__ctas">
+    <a class="btn btn--primary btn--gem btn--block" href="index.html#contact"><span>Evaluate Profile</span><svg class="ico"><use href="#i-arrow"/></svg></a>
+  </div>
+  <p class="menu__foot"><a href="tel:+917358364959"><svg class="ico" aria-hidden="true"><use href="#i-phone"/></svg>+91 73583-64959</a><a href="mailto:info@tuteeconnect.com"><svg class="ico" aria-hidden="true"><use href="#i-mail"/></svg>info@tuteeconnect.com</a></p>
 </div>
 
 
 <main id="main">
   <section class="atlas" id="directory" data-atlas>
-    <div class="atlas__cover" aria-hidden="true"><img src="assets/img/atlas-campus-2400.webp" srcset="assets/img/atlas-campus-1200.webp 1200w, assets/img/atlas-campus-2400.webp 2400w" sizes="(max-width: 760px) 100vw, 62vw" alt="" width="2400" height="1800" fetchpriority="high"></div>
+    <div class="atlas__cover" aria-hidden="true"><img src="assets/img/atlas-campus-2400.webp" srcset="assets/img/atlas-campus-1200.webp 1200w, assets/img/atlas-campus-2400.webp 2400w" sizes="(max-width: 760px) 100vw, 62vw" alt="" width="2400" height="1600" fetchpriority="high" decoding="async"></div>
     <div class="atlas__hero wrap">
       <a class="atlas__back" href="index.html#finder"><span aria-hidden="true">←</span> Back to top universities</a>
       <p class="atlas__k"><span></span>University Atlas · United States</p>
@@ -173,11 +179,6 @@
   </section>
 </main>
 
-<div class="selbar glass glass--dark" data-selbar hidden>
-  <div class="selbar__count"><span data-sel-count>0</span> <span data-sel-word>University</span> shortlisted</div>
-  <button class="btn btn--primary btn--sm" type="button" data-proceed><span>Evaluate my shortlist</span><svg class="ico"><use href="#i-arrow"/></svg></button>
-</div>
-
 <dialog class="apply" id="applyDialog" aria-labelledby="applyTitle">
   <div class="apply__head"><h3 id="applyTitle">Submit Application</h3><button type="button" class="iconbtn iconbtn--light" data-apply-close aria-label="Close"><svg class="ico"><use href="#i-close"/></svg></button></div>
   <form class="lead lead--flat" data-apply-form novalidate><div data-form-slot></div></form>
@@ -186,7 +187,7 @@
 <footer class="foot">
   <div class="wrap foot__grid">
     <div class="foot__brand">
-      <a class="foot__logo" href="index.html#home"><img src="assets/img/logo/logo-hd-480.webp" width="180" height="73" alt="Tutee Connect Logo" loading="lazy"></a>
+      <a class="foot__logo" href="index.html#home"><img src="assets/img/logo/logo-tc-600.png" srcset="assets/img/logo/logo-tc-600.png 1x, assets/img/logo/logo-tc-1200.png 2x" width="600" height="245" alt="Tutee Connect Logo" loading="lazy" decoding="async"></a>
       <p>Our vision is to form a society where all the talent champs in the world get connected and support each other to grow in their life.</p>
       <div class="foot__social">
         <a href="https://www.facebook.com/tuteeconnect" target="_blank" rel="noopener" aria-label="Facebook"><svg class="ico"><use href="#i-facebook"/></svg></a>
@@ -215,18 +216,18 @@
     <div>
       <h4>Reach us</h4>
       <ul>
-        <li><a href="tel:+917010902329">+91 701-090-2329</a></li>
+        <li><a href="tel:+917358364959">+91 73583-64959</a></li>
         <li><a href="tel:+971553799068">+971 55-3799068</a></li>
         <li><a href="mailto:info@tuteeconnect.com">info@tuteeconnect.com</a></li>
       </ul>
     </div>
   </div>
-  <div class="wrap"><p class="foot__credits">Photography from Wikimedia Commons: <a href="https://commons.wikimedia.org/wiki/File:Pont_de_Brooklyn_de_nuit_-_Octobre_2008_edit.jpg" target="_blank" rel="noopener">Brooklyn Bridge, New York</a> by Martin St-Amant (S23678) (<a href="https://creativecommons.org/licenses/by/3.0" target="_blank" rel="noopener">CC BY 3.0</a>); <a href="https://commons.wikimedia.org/wiki/File:Lower_Manhattan_from_Brooklyn_May_2015_panorama.jpg" target="_blank" rel="noopener">Lower Manhattan at night</a> by King of Hearts (<a href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a>); <a href="https://commons.wikimedia.org/wiki/File:Boston_skyline_from_Cambridge_November_2015_panorama_1.jpg" target="_blank" rel="noopener">Boston from Cambridge, Massachusetts</a> by King of Hearts (<a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>); <a href="https://commons.wikimedia.org/wiki/File:Capitol_at_Dusk_2.jpg" target="_blank" rel="noopener">United States Capitol, Washington, D.C.</a> by Martin Falbisoner (<a href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a>); <a href="https://commons.wikimedia.org/wiki/File:Chicago_sunrise_1.jpg" target="_blank" rel="noopener">Chicago skyline at sunrise</a> by Daniel Schwen (<a href="https://creativecommons.org/licenses/by-sa/4.0" target="_blank" rel="noopener">CC BY-SA 4.0</a>); <a href="https://commons.wikimedia.org/wiki/File:Stanford_Memorial_Church_May_2011_HDR_1.jpg" target="_blank" rel="noopener">Stanford Memorial Church, California</a> by King of Hearts (<a href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a>); <a href="https://commons.wikimedia.org/wiki/File:Sun_rays_at_Hopi_Point_Grand_Canyon_2013.jpg" target="_blank" rel="noopener">Hopi Point, Grand Canyon</a> by Tuxyso (<a href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a>). Images are cropped and colour-graded on this page. US map: US Census Bureau via us-atlas.</p></div>
+  <div class="wrap"><p class="foot__credits">Photography from Wikimedia Commons: <a href="https://commons.wikimedia.org/wiki/File:Pont_de_Brooklyn_de_nuit_-_Octobre_2008_edit.jpg" target="_blank" rel="noopener">Brooklyn Bridge, New York</a> by Martin St-Amant (S23678) (<a href="https://creativecommons.org/licenses/by/3.0" target="_blank" rel="noopener">CC BY 3.0</a>). Images are cropped and colour-graded on this page. US map: US Census Bureau via us-atlas.</p></div>
   <div class="wrap foot__base"><p>© 2026 Tutee Connect. All Rights Reserved.</p><p>Connecting talent champions worldwide to grow together.</p></div>
 </footer>
 
 <!-- ============ FLOATING: WhatsApp + Tutee AI ============ -->
-<a class="fab fab--wa" href="https://wa.me/917010902329" target="_blank" rel="noopener noreferrer" aria-label="Chat with us on WhatsApp"><svg class="ico"><use href="#i-whatsapp"/></svg><span class="fab__tip">Chat with us!</span></a>
+<a class="fab fab--wa" href="https://wa.me/917358364959" target="_blank" rel="noopener noreferrer" aria-label="Chat with us on WhatsApp"><svg class="ico"><use href="#i-whatsapp"/></svg><span class="fab__tip">Chat with us!</span></a>
 
 
 </body>

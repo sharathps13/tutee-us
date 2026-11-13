@@ -61,7 +61,7 @@ KB = [
   "Yes. Your first career consultation with Tutee Connect is <strong>free of cost</strong>. We look at your profile, explain your options in the USA and map out the next steps with you.",
   "free counselling counseling consultation charge charges price pay paid fee cost of service", "contact"),
  ("Tutee","Where are your offices?",
-  "Our India office is at 1st Floor, ALA Corner Complex, Virugambakkam, Chennai – 600092, and our UAE office is Tutee Connect LLC FZ, Meydan Grandstand, Dubai. Call <strong>+91 701-090-2329</strong> or <strong>+971 55-3799068</strong>, or email info@tuteeconnect.com.",
+  "Our India office is at 1st Floor, ALA Corner Complex, Virugambakkam, Chennai – 600092, and our UAE office is Tutee Connect LLC FZ, Meydan Grandstand, Dubai. Call <strong>+91 73583-64959</strong> or <strong>+971 55-3799068</strong>, or email info@tuteeconnect.com.",
   "office offices address location located where chennai dubai india uae contact phone number call email reach", "contact"),
  ("Tutee","How do I get started with Tutee Connect?",
   "Just claim your free counselling session. Share your name, phone and email, and a counsellor will contact you to evaluate your profile and build your US route map.",

@@ -9,14 +9,20 @@
   var $ = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
   var hasGsap = !!(window.gsap && window.ScrollTrigger);
-  if (hasGsap) gsap.registerPlugin(ScrollTrigger);
+  if (hasGsap) { gsap.registerPlugin(ScrollTrigger); ScrollTrigger.config({ ignoreMobileResize: true }); } // phones: no full re-measure when the address bar slides in/out
   var motion = hasGsap && !reduce;
   if (!motion) root.classList.add('motion-off');
 
+  /* performance: run a module's first render only when its section is about to come into view (or when the browser is idle) */
+  function whenNear(el, fn) {
+    if (!el || !('IntersectionObserver' in window)) { fn(); return; }
+    var done = false, run = function () { if (done) return; done = true; io.disconnect(); fn(); };
+    var io = new IntersectionObserver(function (es) { if (es[0].isIntersecting) run(); }, { rootMargin: '150% 0px' }); io.observe(el);
+  }
   /* ---------------- smooth scroll + anchors ---------------- */
   var lenis = null;
   if (motion && window.Lenis) {
-    lenis = new window.Lenis({ lerp: 0.1, smoothWheel: true, prevent: function (n) { return !!(n.closest && n.closest('.swipe, .chat, .sheet, .apply, .menu')); } });
+    lenis = new window.Lenis({ lerp: 0.1, smoothWheel: true, prevent: function (n) { return !!(n.closest && n.closest('.swipe, .chat, .sheet, .apply, .menu, .qk')); } });
     lenis.on('scroll', ScrollTrigger.update);
     window.TCLenis = lenis;
     gsap.ticker.add(function (t) { lenis.raf(t * 1000); });
@@ -46,6 +52,7 @@
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     var startId = location.hash.slice(1);
     if (document.readyState === 'complete') jumpTo(startId); else window.addEventListener('load', function () { jumpTo(startId); });
+    if (startId === 'contact') window.addEventListener('load', function () { setTimeout(function () { if (window.TCNote) window.TCNote.open(false); }, 1400); });
   }
   document.addEventListener('click', function (e) {
     var a = e.target.closest && e.target.closest('a[href^="#"]');
@@ -60,20 +67,29 @@
   /* ---------------- header, menu, route rail ---------------- */
   var nav = $('[data-nav]'), lastY = 0;
   var lightSections = $$('.finder, .fund__cols, .earn, .visa, .stories, .faq');
+  var navState = {};
+  function setCls(el, key, cls, on) { if (navState[key] !== on) { navState[key] = on; el.classList.toggle(cls, on); } }
+  // batched to one run per frame; classes are only touched when they actually change
+  var navRaf = 0; function onScrollQ() { if (!navRaf) navRaf = requestAnimationFrame(function () { navRaf = 0; onScroll(); }); }
   function onScroll() {
-    var y = window.scrollY;
-    nav.classList.toggle('is-scrolled', y > 40);
-    nav.classList.toggle('is-hidden', y > lastY && y > 600 && !document.body.classList.contains('lock'));
+    var y = lenis ? lenis.scroll : window.scrollY;
+    setCls(nav, 's', 'is-scrolled', y > 40);
+    setCls(nav, 'h', 'is-hidden', y > 600 && !document.body.classList.contains('lock') && (y > lastY + 1 ? true : y < lastY - 1 ? false : !!navState.h));
     lastY = y;
-    root.classList.toggle('at-top', y < innerHeight * .5);
-    var mid = innerHeight / 2, light = false;
-    lightSections.forEach(function (s) { var r = s.getBoundingClientRect(); if (r.top < mid && r.bottom > mid) light = true; });
-    root.classList.toggle('on-light', light);
-    var hl = false; /* is the header itself over a cream section? then it switches to dark text */
-    lightSections.forEach(function (s) { var r = s.getBoundingClientRect(); if (r.top < 64 && r.bottom > 30) hl = true; });
-    nav.classList.toggle('is-light', hl);
+    setCls(root, 't', 'at-top', y < innerHeight * .5);
+    // section bounds are cached (refreshed on resize / ScrollTrigger refresh) so scrolling never forces a layout
+    var mid = y + innerHeight / 2, light = false, hl = false;
+    for (var i = 0; i < lightBounds.length; i++) { var lb = lightBounds[i]; if (lb[0] < mid && lb[1] > mid) light = true; if (lb[0] < y + 64 && lb[1] > y + 30) hl = true; }
+    if (light !== lastLight) { lastLight = light; root.classList.toggle('on-light', light); }
+    if (hl !== lastHl) { lastHl = hl; nav.classList.toggle('is-light', hl); }
   }
-  window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+  var lightBounds = [], lastLight = null, lastHl = null;
+  function measureLight() { var sy = window.scrollY; lightBounds = lightSections.map(function (s) { var r = s.getBoundingClientRect(); return [r.top + sy, r.bottom + sy]; }); lastLight = lastHl = null; onScroll(); }
+  window.addEventListener('resize', measureLight); window.addEventListener('load', measureLight);
+  if (window.ScrollTrigger) ScrollTrigger.addEventListener('refresh', measureLight);
+  if ('ResizeObserver' in window) new ResizeObserver(measureLight).observe(document.body);
+  measureLight();
+  window.addEventListener('scroll', onScrollQ, { passive: true }); onScroll();
 
   var menu = $('[data-menu]'), burger = $('[data-menu-open]');
   function openMenu() { menu.hidden = false; requestAnimationFrame(function () { menu.classList.add('is-open'); }); burger.setAttribute('aria-expanded', 'true'); document.body.classList.add('lock'); $('[data-menu-close]').focus(); }
@@ -83,6 +99,7 @@
     burger.addEventListener('click', openMenu);
     $('[data-menu-close]').addEventListener('click', closeMenu);
     $$('[data-menu-link]', menu).forEach(function (a) { a.addEventListener('click', closeMenu); });
+    $$('[data-menu-close-soft]', menu).forEach(function (a) { a.addEventListener('click', function () { setTimeout(closeMenu, 10); }); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !menu.hidden) closeMenu(); });
   }
   /* ---------------- header links: a frosted glass lens glides to the hovered link (rests on the current section); the label rolls up ---------------- */
@@ -126,57 +143,73 @@
     $$('[data-section]').forEach(function (s) { spy.observe(s); });
   }
 
-  /* ---------------- scroll pathway: a route from the hero's scroll cue, weaving down the page edges to the footer ---------------- */
-  (function pathway() {
-    var sp = $('[data-sp]'); if (!sp) return;
-    var svg = $('[data-sp-svg]', sp), base = $('[data-sp-base]', sp), ink = $('[data-sp-ink]', sp), tip = $('[data-sp-tip]', sp), lbl = $('[data-sp-label]', sp), end = $('[data-sp-end]', sp), jet = $('[data-sp-jet]', sp);
-    var NAMES = { home: 'Arrival', why: 'Why the USA', destinations: 'Destinations', finder: 'Universities', services: 'Services', funding: 'Funding', visa: 'F-1 visa', 'stem-opt': 'STEM OPT', testimonials: 'Stories', faq: 'Ask us', contact: 'Your next step' };
-    var secs = $$('main > section[id]'), foot = $('.foot'), L = 0, samples = [], marks = [], last = -1, raf = 0, sy0 = 120;
-    function docY(el) { return el.getBoundingClientRect().top + scrollY; }
+  /* ---------------- journey thread + journey rail (desktop, same idea as the Germany page) ----------------
+     The thread is a straight, fine route in the left margin; it never crosses the content.
+     It is revealed by a moving clip window (transforms only), so scrolling costs no repaint. The rail on the right
+     lists the sections: the current one is lit; hover shows the names; click jumps. */
+  (function journey() {
+    var NAMES = { home: 'Arrival', why: 'Why the USA', destinations: 'Destinations', finder: 'Universities', services: 'Services', funding: 'Funding', visa: 'F-1 visa', 'stem-opt': 'STEM OPT', testimonials: 'Stories', faq: 'Ask us', contact: 'Next step' };
+    var secs = $$('main > section[id]').filter(function (s) { return NAMES[s.id]; });
+    var jt = $('[data-jt]'), rail = $('[data-jrail]');
+    var DARK = $$('.hero, .why, .dx, #destinations, #services, .fund__hero, .opt, #stem-opt, .final, #contact, .foot');
+    // ---- rail
+    var links = rail ? secs.map(function (sec) { var a = document.createElement('a'); a.href = '#' + sec.id; a.innerHTML = '<span>' + NAMES[sec.id] + '</span><i></i>'; rail.appendChild(a); return a; }) : [];
+    // ---- thread
+    var svg = jt && $('[data-jt-svg]', jt), base = jt && $('[data-jt-base]', jt), win = jt && $('[data-jt-win]', jt), ink = jt && $('[data-jt-ink]', jt), live = jt && $('[data-jt-live]', jt), plane = jt && $('[data-jt-plane]', jt);
+    var on = false, H0 = 0, TX = [], TY = [], tops = [], darks = [], cur = -1, raf = 0, lastY = -1;
+    var big = window.matchMedia('(min-width: 1024px)');
     function build() {
-      var W = document.documentElement.clientWidth, H = docY(foot) + 2, g = W < 761 ? 10 : Math.max(22, Math.min(46, (W - 1360) / 2 + 18));
-      sp.style.height = H + 'px'; svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
-      var x0 = W - g, y0 = W < 761 ? 96 : 120, /* own route from the hero's top-right, separate from the scroll cue */ side = 1, d = 'M' + x0 + ' ' + y0, px = x0, py = y0;
-      sy0 = y0; marks = [];
-      // from the cue, curve out to the right edge, then run down each section, switching sides at every section break
-      secs.forEach(function (sec, i) {
-        var top = docY(sec), bot = top + sec.offsetHeight, x = side > 0 ? W - g : g;
-        if (i === 0) { var ty = y0 + innerHeight * .35; d += ' L' + x + ' ' + ty; px = x; py = ty; }
-        else { var cy = Math.max(py + 40, top); d += ' C' + px + ' ' + (cy + 70) + ' ' + x + ' ' + (cy + 10) + ' ' + x + ' ' + (cy + 150); px = x; py = cy + 150; }
-        var by = Math.max(py + 10, bot - 110); d += ' L' + px + ' ' + by; py = by;
-        marks.push({ y: top, name: NAMES[sec.id] || '' });
-        side = -side;
-      });
-      var ex = W / 2, ey = H - 34; d += ' C' + px + ' ' + (py + 90) + ' ' + ex + ' ' + (ey - 80) + ' ' + ex + ' ' + ey;
-      base.setAttribute('d', d); ink.setAttribute('d', d);
-      L = ink.getTotalLength(); ink.style.strokeDasharray = L + ' ' + L;
-      samples = []; for (var k = 0; k <= 600; k++) { var l = L * k / 600, p = ink.getPointAtLength(l); samples.push([l, p.y, p.x]); }
-      end.style.left = ex + 'px'; end.style.top = ey + 'px';
-      last = -1; tick();
-    }
-    function lenAt(y) { // first sample at or below y (path only ever moves downward)
-      var lo = 0, hi = samples.length - 1; if (y <= samples[0][1]) return 0; if (y >= samples[hi][1]) return L;
-      while (hi - lo > 1) { var m = (lo + hi) >> 1; if (samples[m][1] < y) lo = m; else hi = m; }
-      var a = samples[lo], b = samples[hi], f = (y - a[1]) / ((b[1] - a[1]) || 1); return a[0] + (b[0] - a[0]) * f;
+      var sy = window.scrollY;
+      tops = secs.map(function (s) { return s.getBoundingClientRect().top + sy; });
+      darks = DARK.map(function (el) { var r = el.getBoundingClientRect(); return [r.top + sy, r.bottom + sy]; });
+      on = !!jt && big.matches; jt && jt.classList.toggle('is-on', on);
+      if (on) {
+        var foot = $('.foot'), H = foot ? foot.getBoundingClientRect().top + sy : document.documentElement.scrollHeight, W = document.documentElement.clientWidth;
+        var left = Math.max(0, (W - 1360) / 2) + parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gutter')) || 48;
+        // a straight route: one vertical line in the left margin, from under the hero copy down to the footer
+        var hx = Math.max(16, Math.round(left * .45)), y0 = innerHeight * .72, y1 = H - 40;
+        var d = 'M' + hx + ' ' + y0 + ' L' + hx + ' ' + y1;
+        TX = [hx, hx]; TY = [y0, y1];
+        jt.style.height = H + 'px'; svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); ink.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+        win.style.height = ink.style.height = H + 'px'; H0 = H;
+        base.setAttribute('d', d); live.setAttribute('d', d);
+      }
+      lastY = -1; tick();
     }
     function tick() {
-      raf = 0; if (!samples.length) return;
-      var ramp = Math.min(1, Math.max(0, scrollY) / (innerHeight * .6)), y = sy0 + (scrollY + innerHeight * .62 - sy0) * ramp, l = lenAt(y); /* plane sits at the very start of the route at the top, then eases into scroll pace */ if (Math.abs(l - last) < .5) return; last = l;
-      ink.style.strokeDashoffset = Math.max(0, L - l);
-      var p = ink.getPointAtLength(l), q = ink.getPointAtLength(Math.min(L, l + 6)), r0 = ink.getPointAtLength(Math.max(0, l - 6));
-      tip.style.transform = 'translate(' + p.x + 'px,' + p.y + 'px)';
-      jet.style.transform = 'rotate(' + (Math.atan2(q.y - r0.y, q.x - r0.x) * 180 / Math.PI + 90).toFixed(1) + 'deg)'; // nose follows the route
-      tip.classList.toggle('is-r', p.x > innerWidth / 2); tip.classList.toggle('is-l', p.x <= innerWidth / 2);
-      var nm = ''; marks.forEach(function (m) { if (y >= m.y) nm = m.name; }); if (lbl.textContent !== nm) lbl.textContent = nm;
-      sp.classList.toggle('is-done', l >= L - 2); tip.classList.remove('is-idle');
+      raf = 0; var y = lenis ? lenis.scroll : window.scrollY; if (y === lastY) return; lastY = y;
+      var vh = innerHeight, line = y + vh * .5, c = 0;
+      for (var i = 0; i < tops.length; i++) if (tops[i] < line) c = i;
+      if (rail) {
+        if (c !== cur) { cur = c; links.forEach(function (a, k) { a.classList.toggle('on', k === c); if (k === c) a.setAttribute('aria-current', 'location'); else a.removeAttribute('aria-current'); }); }
+        var dk = false; for (var j = 0; j < darks.length; j++) if (darks[j][0] < line && darks[j][1] > line) { dk = true; break; }
+        if (rail.__dk !== dk) { rail.__dk = dk; rail.classList.toggle('dark', dk); }
+        var show = y > vh * .6; if (rail.__on !== show) { rail.__on = show; rail.classList.toggle('on', show); }
+      }
+      if (on && TY.length) {
+        var target = y + vh * .6, a = 0, b = TY.length - 1;
+        if (target <= TY[0]) b = 1; else { while (b - a > 1) { var m = (a + b) >> 1; if (TY[m] < target) a = m; else b = m; } }
+        var f = Math.max(0, Math.min(1, (target - TY[a]) / ((TY[b] - TY[a]) || 1))), px = TX[a] + (TX[b] - TX[a]) * f, py = target <= TY[0] ? TY[0] : TY[a] + (TY[b] - TY[a]) * f;
+        var cut = Math.min(H0, py);
+        win.style.transform = 'translate3d(0,' + (cut - H0).toFixed(1) + 'px,0)'; ink.style.transform = 'translate3d(0,' + (H0 - cut).toFixed(1) + 'px,0)';
+        var ang = 180; // nose down the line
+        plane.style.transform = 'translate3d(' + px.toFixed(1) + 'px,' + py.toFixed(1) + 'px,0) rotate(' + ang.toFixed(1) + 'deg)';
+      }
     }
     window.addEventListener('scroll', function () { if (!raf) raf = requestAnimationFrame(tick); }, { passive: true });
-    var rt = 0; function rebuild() { clearTimeout(rt); rt = setTimeout(build, 120); }
+    var rt = 0; function rebuild() { clearTimeout(rt); rt = setTimeout(build, 140); }
     window.addEventListener('resize', rebuild); window.addEventListener('load', rebuild);
     if (window.ScrollTrigger) ScrollTrigger.addEventListener('refresh', rebuild);
     if ('ResizeObserver' in window) new ResizeObserver(rebuild).observe(document.querySelector('main'));
+    if (window.MutationObserver) new MutationObserver(rebuild).observe(document.body, { attributes: true, attributeFilter: ['class'] });
     build();
   })();
+
+  /* ---------------- performance: sections that are off screen pause their CSS loops (see .is-offscreen) ---------------- */
+  if ('IntersectionObserver' in window) {
+    var offIO = new IntersectionObserver(function (es) { es.forEach(function (en) { en.target.classList.toggle('is-offscreen', !en.isIntersecting); }); }, { rootMargin: '200px 0px' });
+    $$('main > section, .foot, .ask, .mq').forEach(function (el) { offIO.observe(el); });
+  }
 
   /* ---------------- small helpers ---------------- */
   if (finePointer && !reduce) $$('[data-magnetic]').forEach(function (el) {
@@ -214,7 +247,7 @@
 
   /* ---------------- lead form ---------------- */
   var leadForm = $('[data-lead-form]'), leadApi = null;
-  if (leadForm && window.TCForms) leadApi = window.TCForms.mount(leadForm, { onSuccess: function () { if (window.TCNote) window.TCNote.received(); } });
+  if (leadForm && window.TCForms) leadApi = window.TCForms.mount(leadForm, { formName: 'Free counselling card (home page)', onSelectionChange: function (l) { if (window.TCShort) window.TCShort.set(l); }, onSuccess: function () { if (window.TCNote) window.TCNote.received(); } });
 
   /* ---------------- contact: the free-counselling note turns over to reveal the form ---------------- */
   window.TCNote = (function () {
@@ -291,22 +324,26 @@
     var cityEl = $('[data-dx-city]', root), descEl = $('[data-dx-desc]', root), idxEl = $('[data-dx-i]', root), hint = $('[data-dx-hint]', root);
     var n = cards.length, lens = segs.map(function (p) { return p.getTotalLength(); }), W = 975, active = -1, lastP = -1, st = null;
     segs.forEach(function (p, i) { p.style.strokeDasharray = (lens[i] + 1) + ' ' + (lens[i] + 1); p.style.strokeDashoffset = lens[i] + 1; });
-    var scalers = $$('[data-dx-s]', root);
+    var scalers = $$('[data-dx-s]', root), routeG = $('.dx__route', svg) || svg;
+    // flight paths are sampled once; the camera then reads positions from tables instead of asking the SVG every frame
+    var SN = 120, tables = segs.map(function (p, i) { var t = []; for (var k = 0; k <= SN; k++) { var q = p.getPointAtLength(lens[i] * k / SN); t.push([q.x, q.y]); } return t; });
+    function ptAt(i, u) { u = Math.max(0, Math.min(1, u)) * SN; var k = Math.min(SN - 1, Math.floor(u)), f = u - k, a = tables[i][k], b = tables[i][k + 1]; return { x: a[0] + (b[0] - a[0]) * f, y: a[1] + (b[1] - a[1]) * f }; }
     function ease(t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
     function camera(p) {
       p = Math.max(0, Math.min(1, p)); if (Math.abs(p - lastP) < .0002) return; lastP = p;
       var f = p * (n - 1), i = Math.min(n - 2, Math.floor(f)), t = f - i;
       var tt = ease(Math.max(0, Math.min(1, (t - .2) / .6)));
-      segs.forEach(function (s, k) { var d = k < i ? 1 : k === i ? tt : 0; s.style.strokeDashoffset = ((lens[k] + 1) * (1 - d)).toFixed(2); });
-      var at = segs[i].getPointAtLength(lens[i] * tt), ah = segs[i].getPointAtLength(Math.min(lens[i], lens[i] * tt + 2)), bh = segs[i].getPointAtLength(Math.max(0, lens[i] * tt - 2));
+      segs.forEach(function (s, k) { var d = k < i ? 1 : k === i ? tt : 0, v = ((lens[k] + 1) * (1 - d)).toFixed(2); if (s.__v !== v) { s.__v = v; s.style.strokeDashoffset = v; } });
+      var at = ptAt(i, tt), ah = ptAt(i, tt + 2 / lens[i]), bh = ptAt(i, tt - 2 / lens[i]);
       var small = innerWidth <= 760, vwPx = svg.clientWidth || innerWidth, vhPx = svg.clientHeight || innerHeight;
       var Z = small ? 2.1 : 2.5, zoom = Z - (Z - 1.15) * Math.sin(Math.PI * tt);
       var vw = W / zoom, vh = vw * vhPx / vwPx;
-      var fx = small ? .5 : .47, fy = small ? .27 : .5;
+      // phones: frame the plane in the clear map band under the heading (see .dx__pin --dxt / --dxb in usa-responsive.css)
+      var bandH = Math.max(100, Math.min(260, vhPx * .28, vhPx - 520)), fx = small ? .5 : .47, fy = small ? (150 + bandH / 2) / vhPx : .5;
       svg.setAttribute('viewBox', (at.x - vw * fx).toFixed(1) + ' ' + (at.y - vh * fy).toFixed(1) + ' ' + vw.toFixed(1) + ' ' + vh.toFixed(1));
       var k = vw / vwPx; // map units per screen pixel: keeps pins, labels and the plane a constant size
       scalers.forEach(function (g) { g.setAttribute('transform', 'scale(' + k.toFixed(4) + ')'); });
-      svg.style.setProperty('--dxk', k.toFixed(4));
+      routeG.style.setProperty('--dxk', k.toFixed(4)); // scoped to the route group so the 50 state shapes are not restyled every frame
       var ang = Math.atan2(ah.y - bh.y, ah.x - bh.x) * 180 / Math.PI;
       plane.setAttribute('transform', 'translate(' + at.x.toFixed(1) + ' ' + at.y.toFixed(1) + ') rotate(' + (tt > 0 && tt < 1 ? ang : (i === n - 2 && tt >= 1 ? ang : 180)).toFixed(1) + ')');
       plane.style.opacity = tt > .02 && tt < .98 ? 1 : 0;
@@ -320,10 +357,12 @@
         if (k !== a) c.classList.remove('is-flipped');
         var rot = parseFloat(c.style.getPropertyValue('--rot')) || 0, off = a - k;
         c.style.zIndex = k <= a ? 10 + k : 1;
-        var to = k <= a ? { x: off * -14, y: off * 10, rotation: rot - off * 2.5, scale: 1 - Math.min(off, 4) * .035, opacity: off > 3 ? 0 : 1 }
-                        : { x: innerWidth * .6, y: -40, rotation: 22, scale: .9, opacity: 0 };
-        if (instant || !window.gsap) { if (window.gsap) gsap.set(c, to); else { c.style.transform = 'translate(' + to.x + 'px,' + to.y + 'px) rotate(' + to.rotation + 'deg) scale(' + to.scale + ')'; c.style.opacity = to.opacity; } return; }
-        if (k === a && prev < a) gsap.fromTo(c, { x: innerWidth * .6, y: -60, rotation: 24, scale: .92, opacity: 1 }, Object.assign({ duration: .9, ease: 'power3.out', overwrite: true }, to));
+        // autoAlpha: cards that are fully hidden also get visibility:hidden, so the compositor stops drawing them;
+        // only the active card and two behind it are ever on screen
+        var to = k <= a ? { x: off * -14, y: off * 10, rotation: rot - off * 2.5, scale: 1 - Math.min(off, 4) * .035, autoAlpha: off > 2 ? 0 : 1 }
+                        : { x: innerWidth * .6, y: -40, rotation: 22, scale: .9, autoAlpha: 0 };
+        if (instant || !window.gsap) { if (window.gsap) gsap.set(c, to); else { c.style.transform = 'translate(' + to.x + 'px,' + to.y + 'px) rotate(' + to.rotation + 'deg) scale(' + to.scale + ')'; c.style.opacity = to.autoAlpha; c.style.visibility = to.autoAlpha ? '' : 'hidden'; } return; }
+        if (k === a && prev < a) gsap.fromTo(c, { x: innerWidth * .6, y: -60, rotation: 24, scale: .92, autoAlpha: 1 }, Object.assign({ duration: .9, ease: 'power3.out', overwrite: true }, to));
         else gsap.to(c, Object.assign({ duration: .7, ease: 'power3.out', overwrite: true }, to));
       });
       var name = tabs[a].getAttribute('data-name'), desc = tabs[a].getAttribute('data-desc'), num = ('0' + (a + 1)).slice(-2);
@@ -341,10 +380,34 @@
     tabs.forEach(function (b, k) { b.addEventListener('click', function () { jump(k); }); });
     pts.forEach(function (p, k) { p.style.cursor = 'pointer'; p.addEventListener('click', function () { jump(k); }); });
     // the top postcard turns over to show its message; the pile leans toward the cursor
-    stack.addEventListener('click', function () { var c = cards[active]; if (c) { c.classList.toggle('is-flipped'); if (hint) hint.style.opacity = 0; } });
+    stack.addEventListener('click', function (e) {
+      var c = cards[active]; if (!c) return;
+      if (e.target.closest('[data-pc-expand]')) { e.stopPropagation(); expand(c); return; }
+      c.classList.toggle('is-flipped'); if (hint) hint.style.opacity = 0;
+    });
+    // "Expand": the card's photo full size, with its title, description and place
+    var pcx = null, lastFocus = null;
+    function expand(c) {
+      if (!pcx) {
+        pcx = document.createElement('div'); pcx.className = 'pcx'; pcx.hidden = true; pcx.setAttribute('role', 'dialog'); pcx.setAttribute('aria-modal', 'true');
+        pcx.innerHTML = '<figure class="pcx__fig"><img alt=""><figcaption class="pcx__cap"><h4></h4><p></p><small></small></figcaption><button type="button" class="pcx__close" aria-label="Close"><svg class="ico"><use href="#i-close"/></svg></button></figure>';
+        document.body.appendChild(pcx);
+        pcx.addEventListener('click', function (e) { if (e.target === pcx || e.target.closest('.pcx__close')) shut(); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && pcx && !pcx.hidden) shut(); });
+      }
+      var im = $('.pc__img', c) || $('img', c), big = $('img', pcx);
+      big.src = im.getAttribute('src') || im.currentSrc; // the full-size photo (cards themselves load the 800 px version) big.alt = im.alt || '';
+      $('h4', pcx).textContent = $('.pc__title', c).textContent;
+      $('p', pcx).textContent = $('.pc__desc', c).textContent;
+      $('small', pcx).textContent = $('.pc__loc span', c).innerHTML.replace(/<br\s*\/?>/i, ' · ').replace(/&amp;/g, '&');
+      lastFocus = document.activeElement; pcx.hidden = false; document.body.classList.add('lock');
+      requestAnimationFrame(function () { pcx.classList.add('is-on'); $('.pcx__close', pcx).focus(); });
+    }
+    function shut() { pcx.classList.remove('is-on'); document.body.classList.remove('lock'); setTimeout(function () { pcx.hidden = true; }, 300); if (lastFocus) try { lastFocus.focus(); } catch (e) {} }
     if (finePointer && !reduce && window.gsap) {
-      var rx = gsap.quickTo(stack, 'rotationX', { duration: .8, ease: 'power3.out' }), ry = gsap.quickTo(stack, 'rotationY', { duration: .8, ease: 'power3.out' });
-      root.addEventListener('pointermove', function (e) { var r = stack.getBoundingClientRect(), nx = (e.clientX - (r.left + r.width / 2)) / innerWidth, ny = (e.clientY - (r.top + r.height / 2)) / innerHeight; ry(nx * 14); rx(-ny * 10); });
+      // tilt through CSS variables, so the stack keeps its own centring transform at every screen width
+      var rx = function (v) { stack.style.setProperty('--rx', v.toFixed(2) + 'deg'); }, ry = function (v) { stack.style.setProperty('--ry', v.toFixed(2) + 'deg'); };
+      root.addEventListener('pointermove', function (e) { if (innerWidth <= 760) { rx(0); ry(0); return; } var r = stack.getBoundingClientRect(), nx = (e.clientX - (r.left + r.width / 2)) / innerWidth, ny = (e.clientY - (r.top + r.height / 2)) / innerHeight; ry(nx * 14); rx(-ny * 10); });
       root.addEventListener('pointerleave', function () { rx(0); ry(0); });
     }
     camera(0); show(0, true);
@@ -374,6 +437,123 @@
     $$('.st', sec).forEach(function (p) {
       p.addEventListener('click', function () { var s = p.getAttribute('data-st'); st.state = st.state === s ? '' : s; render(); });
     });
+    // poster-style map: each state's name is set in bold capitals inside its shape (squeezed to fit, like a print map);
+    // the university bubble sits just under the name. States too small for a name keep the bubble on their centre.
+    var NS = 'http://www.w3.org/2000/svg', svgMap = $('.finder__map', sec), labelG = document.createElementNS(NS, 'g'), base = {};
+    labelG.setAttribute('class', 'finder__labels'); labelG.setAttribute('aria-hidden', 'true');
+    var bubG = $('.finder__bubbles', sec); bubG.parentNode.insertBefore(labelG, bubG);
+    var TINY = { RI: 1, DE: 1, CT: 1, NJ: 1, MA: 1, VT: 1, NH: 1, MD: 1, DC: 1, HI: 1 };
+    var SPLIT = { 'NORTH DAKOTA': ['NORTH', 'DAKOTA'], 'SOUTH DAKOTA': ['SOUTH', 'DAKOTA'], 'NEW MEXICO': ['NEW', 'MEXICO'], 'NEW YORK': ['NEW', 'YORK'], 'NORTH CAROLINA': ['NORTH', 'CAROLINA'], 'SOUTH CAROLINA': ['SOUTH', 'CAROLINA'], 'WEST VIRGINIA': ['WEST', 'VIRGINIA'], 'MINNESOTA': ['MINNE', 'SOTA'], 'WISCONSIN': ['WISCON', 'SIN'], 'MICHIGAN': ['MICH', 'IGAN'], 'ILLINOIS': ['ILLI', 'NOIS'], 'MISSOURI': ['MISS', 'OURI'], 'ARKANSAS': ['ARKA', 'NSAS'], 'MISSISSIPPI': ['MISSI', 'SSIPPI'], 'ALABAMA': ['ALA', 'BAMA'], 'LOUISIANA': ['LOUISI', 'ANA'], 'GEORGIA': ['GEO', 'RGIA'], 'INDIANA': ['INDI', 'ANA'], 'PENNSYLVANIA': ['PENNSYL', 'VANIA'], 'TENNESSEE': ['TENNESSEE'], 'KENTUCKY': ['KENTUCKY'] };
+    var TILT = { CA: [.36, .4, 58, .08, .5, .66, .8], FL: [.8, .58, 64, .13, .42, .52, .2] }; // x, y, angle, size, length, bubble x, bubble y (fractions of the state's box)
+    var ANCHOR = { FL: [.74, .55], MI: [.7, .7], LA: [.4, .42], ID: [.36, .66], MD: [.3, .4], KY: [.55, .52], VA: [.55, .55], CA: [.4, .48] };
+    // rowRoom answers are fixed by the map geometry, so they ship precomputed (FINDER_ROOM, generated by
+    // tools/bake-finder-room.mjs); anything not in the table is measured live
+    var FINDER_ROOM = /*ROOM*/{}/*/ROOM*/, roomLog = window.__TC_ROOM_LOG = {};
+    function rowRoom(path, x, y) {
+      var key = path.getAttribute('data-st') + '|' + x.toFixed(1) + '|' + y.toFixed(1);
+      if (key in FINDER_ROOM) return FINDER_ROOM[key];
+      return (roomLog[key] = rowRoomLive(path, x, y));
+    }
+    function rowRoomLive(path, x, y) { // horizontal space inside the state's outline around (x, y), centred on x
+      var P = svgMap.createSVGPoint(), l = 0, r = 0, step = 2; P.y = y;
+      for (P.x = x; l < 600 && path.isPointInFill(P); l += step) P.x = x - l - step;
+      for (P.x = x; r < 600 && path.isPointInFill(P); r += step) P.x = x + r + step;
+      return 2 * Math.min(l, r);
+    }
+    function layoutLabels() {
+      labelG.textContent = '';
+      $$('.st', sec).forEach(function (p) {
+        var id = p.getAttribute('data-st'), name = (p.textContent || '').trim().toUpperCase(), g = $('.bub[data-bub="' + id + '"]', sec);
+        if (!g || !name) return;
+        var m = /translate\(([-\d.]+)[ ,]+([-\d.]+)\)/.exec(g.getAttribute('transform') || ''); if (!m) return;
+        var cx = +m[1], cy = +m[2]; base[id] = { cx: cx, cy: cy, below: null };
+        if (TINY[id]) return;
+        var bb = p.getBBox(), lines = SPLIT[name] || [name];
+        if (TILT[id]) { // long diagonal states: the name runs along the shape, like the poster
+          var T = TILT[id], tx = bb.x + bb.width * T[0], ty = bb.y + bb.height * T[1], tt = document.createElementNS(NS, 'text');
+          tt.setAttribute('font-size', (bb.height * T[3]).toFixed(1)); tt.setAttribute('transform', 'rotate(' + T[2] + ' ' + tx.toFixed(1) + ' ' + ty.toFixed(1) + ')');
+          tt.setAttribute('x', tx.toFixed(1)); tt.setAttribute('y', ty.toFixed(1)); tt.setAttribute('dominant-baseline', 'central');
+          tt.setAttribute('textLength', (bb.height * T[4]).toFixed(1)); tt.setAttribute('lengthAdjust', 'spacingAndGlyphs'); tt.textContent = name; labelG.appendChild(tt);
+          base[id].cx = bb.x + bb.width * T[5]; base[id].cy = bb.y + bb.height * T[6]; base[id].free = true; return;
+        }
+        if (ANCHOR[id]) { cx = bb.x + bb.width * ANCHOR[id][0]; cy = bb.y + bb.height * ANCHOR[id][1]; base[id].cx = cx; base[id].cy = cy; }
+        var fs = Math.min(bb.height * (lines.length > 1 ? .2 : .26), 30), t, top, lh, blockH, ok = false;
+        for (var tries = 0; tries < 8 && fs >= 7; tries++, fs *= .86) {
+          if (t) t.remove();
+          lh = fs * .92; blockH = lines.length * lh; top = cy - blockH * .78;
+          t = document.createElementNS(NS, 'text'); t.setAttribute('font-size', fs.toFixed(1)); labelG.appendChild(t);
+          var worst = 0, fits = [];
+          lines.forEach(function (l, k) {
+            var ts = document.createElementNS(NS, 'tspan'), y = top + lh * (k + .82); ts.setAttribute('x', cx.toFixed(1)); ts.setAttribute('y', y.toFixed(1)); ts.textContent = l; t.appendChild(ts);
+            // the room the state actually has on this line (measured across its outline, not its bounding box)
+            var room = Math.min(rowRoom(p, cx, y - fs * .35), rowRoom(p, cx, y - fs * .05)) * .9, len = ts.getComputedTextLength();
+            fits.push([ts, len, room]); worst = Math.max(worst, len / Math.max(room, 1));
+          });
+          if (worst <= 1.55) { fits.forEach(function (f) { if (f[1] > f[2]) { f[0].setAttribute('textLength', f[2].toFixed(1)); f[0].setAttribute('lengthAdjust', 'spacingAndGlyphs'); } }); ok = true; break; }
+        }
+        if (!ok) { if (t) t.remove(); return; }
+        base[id].below = top + blockH + 3; var tb = t.getBBox(); base[id].right = tb.x + tb.width; base[id].left = tb.x; base[id].above = tb.y - 3; base[id].mid = tb.y + tb.height / 2; base[id].path = p;
+      });
+    }
+    // the finished labels are baked too (FINDER_LABELS, same tool) — placing 40 names live costs ~100 ms of layout on a phone
+    var FINDER_LABELS = /*LABELS*/{"v":51,"svg":"<text font-size=\"22.6\"><tspan x=\"671.6\" y=\"416.8\">ALA</tspan><tspan x=\"671.6\" y=\"437.6\" textLength=\"54.0\" lengthAdjust=\"spacingAndGlyphs\">BAMA</tspan></text><text font-size=\"19.1\"><tspan x=\"102.5\" y=\"523.9\" textLength=\"54.0\" lengthAdjust=\"spacingAndGlyphs\">ALASKA</tspan></text><text font-size=\"30.0\"><tspan x=\"208.0\" y=\"383.5\" textLength=\"86.4\" lengthAdjust=\"spacingAndGlyphs\">ARIZONA</tspan></text><text font-size=\"26.8\"><tspan x=\"331.5\" y=\"290.9\" textLength=\"111.6\" lengthAdjust=\"spacingAndGlyphs\">COLORADO</tspan></text><text font-size=\"18.5\" transform=\"rotate(64 790.4 546.4)\" x=\"790.4\" y=\"546.4\" dominant-baseline=\"central\" textLength=\"59.6\" lengthAdjust=\"spacingAndGlyphs\">FLORIDA</text><text font-size=\"20.6\"><tspan x=\"736.0\" y=\"414.0\">GEO</tspan><tspan x=\"736.0\" y=\"432.9\">RGIA</tspan></text><text font-size=\"19.4\"><tspan x=\"665.4\" y=\"255.9\">INDI</tspan><tspan x=\"665.4\" y=\"273.7\" textLength=\"39.6\" lengthAdjust=\"spacingAndGlyphs\">ANA</tspan></text><text font-size=\"18.7\"><tspan x=\"456.2\" y=\"310.0\">KANSAS</tspan></text><text font-size=\"17.4\"><tspan x=\"919.0\" y=\"94.2\" textLength=\"39.6\" lengthAdjust=\"spacingAndGlyphs\">MAINE</tspan></text><text font-size=\"26.6\"><tspan x=\"524.7\" y=\"113.9\" textLength=\"72.0\" lengthAdjust=\"spacingAndGlyphs\">MINNE</tspan><tspan x=\"524.7\" y=\"138.4\" textLength=\"54.0\" lengthAdjust=\"spacingAndGlyphs\">SOTA</tspan></text><text font-size=\"14.2\"><tspan x=\"801.0\" y=\"340.9\">NORTH</tspan><tspan x=\"801.0\" y=\"354.0\">CAROLINA</tspan></text><text font-size=\"14.8\"><tspan x=\"429.1\" y=\"94.0\">NORTH</tspan><tspan x=\"429.1\" y=\"107.6\">DAKOTA</tspan></text><text font-size=\"21.3\"><tspan x=\"470.7\" y=\"376.9\" textLength=\"86.4\" lengthAdjust=\"spacingAndGlyphs\">OKLAHOMA</tspan></text><text font-size=\"13.4\"><tspan x=\"805.8\" y=\"216.5\">PENNSYL</tspan><tspan x=\"805.8\" y=\"228.8\">VANIA</tspan></text><text font-size=\"16.8\"><tspan x=\"429.7\" y=\"160.9\">SOUTH</tspan><tspan x=\"429.7\" y=\"176.3\">DAKOTA</tspan></text><text font-size=\"30.0\"><tspan x=\"434.1\" y=\"470.4\">TEXAS</tspan></text><text font-size=\"27.0\"><tspan x=\"307.8\" y=\"196.3\" textLength=\"104.4\" lengthAdjust=\"spacingAndGlyphs\">WYOMING</tspan></text><text font-size=\"20.8\"><tspan x=\"560.4\" y=\"297.5\">MISS</tspan><tspan x=\"560.4\" y=\"316.7\">OURI</tspan></text><text font-size=\"10.3\"><tspan x=\"766.7\" y=\"277.6\">WEST</tspan><tspan x=\"766.7\" y=\"287.1\" textLength=\"32.4\" lengthAdjust=\"spacingAndGlyphs\">VIRGINIA</tspan></text><text font-size=\"25.6\"><tspan x=\"615.0\" y=\"252.7\">ILLI</tspan><tspan x=\"615.0\" y=\"276.2\" textLength=\"54.0\" lengthAdjust=\"spacingAndGlyphs\">NOIS</tspan></text><text font-size=\"26.2\"><tspan x=\"310.6\" y=\"375.5\">NEW</tspan><tspan x=\"310.6\" y=\"399.6\" textLength=\"100.8\" lengthAdjust=\"spacingAndGlyphs\">MEXICO</tspan></text><text font-size=\"16.4\"><tspan x=\"563.6\" y=\"379.8\">ARKA</tspan><tspan x=\"563.6\" y=\"394.9\">NSAS</tspan></text><text font-size=\"19.8\" transform=\"rotate(58 69.8 258.2)\" x=\"69.8\" y=\"258.2\" dominant-baseline=\"central\" textLength=\"124.0\" lengthAdjust=\"spacingAndGlyphs\">CALIFORNIA</text><text font-size=\"18.5\"><tspan x=\"539.9\" y=\"228.0\">IOWA</tspan></text><text font-size=\"11.2\"><tspan x=\"686.7\" y=\"318.8\" textLength=\"43.2\" lengthAdjust=\"spacingAndGlyphs\">KENTUCKY</tspan></text><text font-size=\"21.2\"><tspan x=\"680.2\" y=\"169.7\" textLength=\"36.0\" lengthAdjust=\"spacingAndGlyphs\">MICH</tspan><tspan x=\"680.2\" y=\"189.2\" textLength=\"50.4\" lengthAdjust=\"spacingAndGlyphs\">IGAN</tspan></text><text font-size=\"19.3\"><tspan x=\"618.1\" y=\"424.4\" textLength=\"46.8\" lengthAdjust=\"spacingAndGlyphs\">MISSI</tspan><tspan x=\"618.1\" y=\"442.1\" textLength=\"43.2\" lengthAdjust=\"spacingAndGlyphs\">SSIPPI</tspan></text><text font-size=\"30.0\"><tspan x=\"286.9\" y=\"100.8\" textLength=\"136.8\" lengthAdjust=\"spacingAndGlyphs\">MONTANA</tspan></text><text font-size=\"17.9\"><tspan x=\"833.9\" y=\"159.6\" textLength=\"28.8\" lengthAdjust=\"spacingAndGlyphs\">NEW</tspan><tspan x=\"833.9\" y=\"176.1\">YORK</tspan></text><text font-size=\"22.6\"><tspan x=\"723.8\" y=\"253.7\">OHIO</tspan></text><text font-size=\"30.0\"><tspan x=\"102.6\" y=\"135.2\" textLength=\"100.8\" lengthAdjust=\"spacingAndGlyphs\">OREGON</tspan></text><text font-size=\"13.8\"><tspan x=\"673.5\" y=\"361.7\">TENNESSEE</tspan></text><text font-size=\"30.0\"><tspan x=\"226.7\" y=\"269.9\" textLength=\"75.6\" lengthAdjust=\"spacingAndGlyphs\">UTAH</tspan></text><text font-size=\"11.2\"><tspan x=\"797.6\" y=\"302.9\" textLength=\"39.6\" lengthAdjust=\"spacingAndGlyphs\">VIRGINIA</tspan></text><text font-size=\"14.9\"><tspan x=\"124.2\" y=\"59.4\" textLength=\"97.2\" lengthAdjust=\"spacingAndGlyphs\">WASHINGTON</tspan></text><text font-size=\"20.8\"><tspan x=\"594.7\" y=\"152.4\" textLength=\"61.2\" lengthAdjust=\"spacingAndGlyphs\">WISCON</tspan><tspan x=\"594.7\" y=\"171.6\">SIN</tspan></text><text font-size=\"19.2\"><tspan x=\"434.1\" y=\"239.5\">NEBRASKA</tspan></text><text font-size=\"14.0\"><tspan x=\"779.3\" y=\"382.9\">SOUTH</tspan><tspan x=\"779.3\" y=\"395.7\" textLength=\"57.6\" lengthAdjust=\"spacingAndGlyphs\">CAROLINA</tspan></text><text font-size=\"22.2\"><tspan x=\"186.9\" y=\"150.7\" textLength=\"46.8\" lengthAdjust=\"spacingAndGlyphs\">IDAHO</tspan></text><text font-size=\"30.0\"><tspan x=\"142.1\" y=\"253.0\" textLength=\"82.8\" lengthAdjust=\"spacingAndGlyphs\">NEVADA</tspan></text><text font-size=\"7.3\"><tspan x=\"576.2\" y=\"465.8\" textLength=\"18.0\" lengthAdjust=\"spacingAndGlyphs\">LOUISI</tspan><tspan x=\"576.2\" y=\"472.5\" textLength=\"14.4\" lengthAdjust=\"spacingAndGlyphs\">ANA</tspan></text>","base":{"AL":{"cx":671.6,"cy":432.2,"below":444.34848,"right":698.8593139648438,"left":644.5999755859375,"above":388.96539306640625,"mid":417.88702392578125},"AK":{"cx":102.5,"cy":523.2,"below":530.062132032,"right":130.32205963134766,"left":75.49999237060547,"above":500.721923828125,"mid":516.9153070449829},"AZ":{"cx":208,"cy":382.4,"below":391.472,"right":251.1999969482422,"left":164.8000030517578,"above":347.9045715332031,"mid":371.85876846313477},"CO":{"cx":331.5,"cy":289.9,"below":298.320272,"right":387.40321350097656,"left":275.6999816894531,"above":259.9610595703125,"mid":280.8109321594238},"FL":{"cx":744.76,"cy":492.4,"below":null,"free":true},"GA":{"cx":736,"cy":428,"below":439.33888,"right":760.2952880859375,"left":711.7959594726562,"above":389.26971435546875,"mid":415.6891784667969},"IN":{"cx":665.4,"cy":269.1,"below":279.95312,"right":686.1170043945312,"left":645.6000366210938,"above":232.7218780517578,"mid":257.81526947021484},"KS":{"cx":456.2,"cy":309.3,"below":316.088928,"right":493.8246841430664,"left":418.6449279785156,"above":286.8218688964844,"mid":303.0152521133423},"ME":{"cx":919,"cy":93.6,"below":100.11454014911999,"right":939.3611831665039,"left":899.2000122070312,"above":72.57403564453125,"mid":87.215256690979},"MA":{"cx":897.5,"cy":172.6,"below":null},"MN":{"cx":524.7,"cy":132,"below":145.76767999999998,"right":560.7852783203125,"left":488.6999816894531,"above":82.96106719970703,"mid":116.06093215942383},"NJ":{"cx":861.5,"cy":230.2,"below":null},"NC":{"cx":801,"cy":350.6,"below":359.34816,"right":837.7769775390625,"left":765.5427856445312,"above":322.37835693359375,"mid":342.0174255371094},"ND":{"cx":429.1,"cy":104.1,"below":113.09103999999999,"right":459.1844482421875,"left":399.93634033203125,"above":75.4783706665039,"mid":95.36742782592773},"OK":{"cx":470.7,"cy":376.1,"below":383.415168,"right":514.7536087036133,"left":427.4999694824219,"above":350.6175537109375,"mid":368.3631000518799},"PA":{"cx":805.8,"cy":225.6,"below":234.02432,"right":836.1699829101562,"left":776.0784301757812,"above":199.53053283691406,"mid":217.99352264404297},"SD":{"cx":429.7,"cy":172.3,"below":182.10064000000003,"right":463.95343017578125,"left":396.5589294433594,"above":139.27403259277344,"mid":161.6152572631836},"TX":{"cx":434.1,"cy":469.3,"below":478.372,"right":481.7624282836914,"left":386.7954406738281,"above":434.8045349121094,"mid":458.758731842041},"WY":{"cx":307.8,"cy":195.3,"below":203.772896,"right":360.3650436401367,"left":255.5999755859375,"above":163.8089141845703,"mid":185.43486213684082},"CT":{"cx":885.9,"cy":190.5,"below":null},"MO":{"cx":560.4,"cy":311.7,"below":323.11983999999995,"right":586.3226928710938,"left":534.6923217773438,"above":272.76971435546875,"mid":299.3391876220703},"WV":{"cx":766.7,"cy":284.6,"below":291.77110259456003,"right":783.5074462890625,"left":750.5,"above":263.73486328125,"mid":278.46958923339844},"IL":{"cx":615,"cy":270.1,"below":283.46288,"right":642.135498046875,"left":588,"above":221.7610626220703,"mid":254.3609390258789},"NM":{"cx":310.6,"cy":393.3,"below":406.90576000000004,"right":361.57977294921875,"left":260.1999816894531,"above":344.5610656738281,"mid":377.4609375},"AR":{"cx":563.6,"cy":391,"below":400.63872,"right":585.6867065429688,"left":541.5422973632812,"above":359.7261962890625,"mid":381.14134216308594},"CA":{"cx":113.04,"cy":357.4,"below":null,"free":true},"DE":{"cx":853.3,"cy":260,"below":null},"DC":{"cx":827.8,"cy":267.3,"below":null},"HI":{"cx":299.4,"cy":573.1,"below":null},"IA":{"cx":539.9,"cy":227.3,"below":234.03630400000003,"right":563.8009071350098,"left":515.9991455078125,"above":204.82188415527344,"mid":221.01526737213135},"KY":{"cx":686.7,"cy":318.36,"below":323.636083144192,"right":708.897289276123,"left":665.1000366210938,"above":303.3826904296875,"mid":314.14350414276123},"MD":{"cx":831.6,"cy":263.5,"below":null},"MI":{"cx":680.2,"cy":184.1,"below":195.66255628800002,"right":705.4000244140625,"left":655,"above":143.4175567626953,"mid":170.91309356689453},"MS":{"cx":618.1,"cy":437.5,"below":448.2980672,"right":641.5,"left":594.699951171875,"above":401.22186279296875,"mid":426.2652587890625},"MT":{"cx":286.9,"cy":99.7,"below":108.77199999999999,"right":355.30230712890625,"left":218.49996948242188,"above":65.20458221435547,"mid":89.15877914428711},"NH":{"cx":892.6,"cy":140.2,"below":null},"NY":{"cx":833.9,"cy":171.8,"below":182.0410624,"right":858.2274780273438,"left":810.2780151367188,"above":137.97406005859375,"mid":160.86527252197266},"OH":{"cx":723.8,"cy":252.9,"below":260.478288,"right":752.2645454406738,"left":695.4972534179688,"above":225.86537170410156,"mid":244.38699913024902},"OR":{"cx":102.6,"cy":134.1,"below":143.172,"right":153.00000381469727,"left":52.20000076293945,"above":99.60457611083984,"mid":123.55877304077148},"TN":{"cx":673.5,"cy":361.2,"below":366.98907199999996,"right":712.7284622192383,"left":634.271484375,"above":344.7305603027344,"mid":357.0435371398926},"UT":{"cx":226.7,"cy":268.8,"below":277.872,"right":264.49998474121094,"left":188.8999786376953,"above":234.30458068847656,"mid":258.2587776184082},"VA":{"cx":797.65,"cy":302.45,"below":307.72407483553536,"right":817.5927619934082,"left":777.7999267578125,"above":287.482666015625,"mid":298.24347972869873},"WA":{"cx":124.2,"cy":58.9,"below":64.91246298496,"right":172.9549789428711,"left":75.5999984741211,"above":40.87837600708008,"mid":53.96743392944336},"WI":{"cx":594.7,"cy":166.6,"below":178.01984,"right":625.2999267578125,"left":564.0999145507812,"above":127.66970825195312,"mid":154.2391815185547},"NE":{"cx":434.1,"cy":238.8,"below":245.69417600000003,"right":485.2945098876953,"left":383.94573974609375,"above":216.32188415527344,"mid":232.51526737213135},"SC":{"cx":779.3,"cy":392.4,"below":401.06719999999996,"right":808.0999755859375,"left":750.5,"above":364.37835693359375,"mid":383.867431640625},"ID":{"cx":186.88,"cy":149.84,"below":157.3308512,"right":210.61476516723633,"left":163.49998474121094,"above":124.41755676269531,"mid":142.1631031036377},"NV":{"cx":142.1,"cy":251.9,"below":260.97200000000004,"right":183.5,"left":100.69999694824219,"above":217.40457153320312,"mid":241.35876846313477},"VT":{"cx":873.3,"cy":136,"below":null},"LA":{"cx":576.2,"cy":470.8,"below":476.74783870209495,"right":585.9757080078125,"left":567.2000122070312,"above":455.0391540527344,"mid":466.045654296875},"RI":{"cx":904.7,"cy":184.3,"below":null}}}/*/LABELS*/;
+    if (FINDER_LABELS && FINDER_LABELS.v === $$('.st', sec).length) {
+      labelG.innerHTML = FINDER_LABELS.svg;
+      Object.keys(FINDER_LABELS.base).forEach(function (id) { var o = FINDER_LABELS.base[id]; o.path = $('.st[data-st="' + id + '"]', sec); base[id] = o; });
+    } else layoutLabels();
+    window.__TC_LABELS = function () { var b = {}; Object.keys(base).forEach(function (id) { var o = {}; for (var k in base[id]) if (k !== 'path') o[k] = base[id][k]; b[id] = o; }); return { v: $$('.st', sec).length, svg: labelG.innerHTML, base: b }; };
+    // hover a state: it lifts off the flag (scaled up with a shadow, its name and count carried along) and a card shows what's there
+    (function statePop() {
+      if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+      var flagImg = $('.finder__flag image', svgMap); if (!flagImg) return;
+      var defs = $('defs', svgMap), clip = document.createElementNS(NS, 'clipPath'), clipPath = document.createElementNS(NS, 'path');
+      clip.id = 'usPopClip'; clip.appendChild(clipPath); defs.appendChild(clip);
+      var pop = document.createElementNS(NS, 'g'), body = document.createElementNS(NS, 'g'), face = flagImg.cloneNode(), edge = document.createElementNS(NS, 'path'), extra = document.createElementNS(NS, 'g');
+      pop.setAttribute('class', 'finder__pop'); body.setAttribute('clip-path', 'url(#usPopClip)'); edge.setAttribute('class', 'finder__popedge');
+      body.appendChild(face); pop.appendChild(body); pop.appendChild(edge); pop.appendChild(extra); svgMap.appendChild(pop);
+      var wrap = $('.finder__mapwrap', sec), tip = document.createElement('div'); tip.className = 'finder__tip'; tip.setAttribute('aria-hidden', 'true'); wrap.appendChild(tip);
+      var curId = null;
+      function show(p, e) {
+        var id = p.getAttribute('data-st'); if (id === curId) return move(e); curId = id;
+        var d = p.getAttribute('d'), bb = p.getBBox(), cx = bb.x + bb.width / 2, cy = bb.y + bb.height / 2, k = bb.width < 40 || bb.height < 40 ? 1.35 : 1.08;
+        clipPath.setAttribute('d', d); edge.setAttribute('d', d); extra.textContent = '';
+        $$('.finder__labels text', svgMap).forEach(function (t) { var b = t.getBBox(), mx = b.x + b.width / 2, my = b.y + b.height / 2; if (p.isPointInFill(Object.assign(svgMap.createSVGPoint(), { x: mx, y: my }))) extra.appendChild(t.cloneNode(true)); });
+        var bub = $('.bub[data-bub="' + id + '"]', sec); if (bub && +bub.querySelector('circle').getAttribute('r') > 0) { var bc = bub.cloneNode(true); bc.removeAttribute('class'); bc.setAttribute('class', 'bub'); extra.appendChild(bc); }
+        pop.style.transformOrigin = cx + 'px ' + cy + 'px';
+        pop.classList.remove('is-on'); void pop.getBBox(); pop.style.setProperty('--k', k); pop.classList.add('is-on');
+        // the card: state, how many featured universities, the first few names
+        var list = data.filter(function (u) { return stateOf(u) === id && match(u, true); });
+        tip.innerHTML = '<b>' + esc(stateName[id] || id) + '</b><span class="finder__tipn">' + (list.length ? list.length + ' featured ' + (list.length === 1 ? 'university' : 'universities') : 'No featured universities yet') + '</span>' +
+          (list.length ? '<ul>' + list.slice(0, 3).map(function (u) { return '<li>' + esc(u.name) + '</li>'; }).join('') + (list.length > 3 ? '<li class="more">+ ' + (list.length - 3) + ' more</li>' : '') + '</ul><small>Click to see them all</small>' : '<small>Explore every university in the Atlas</small>');
+        tip.classList.add('is-on'); move(e);
+      }
+      function move(e) {
+        if (!e) return; var r = wrap.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, w = tip.offsetWidth, h = tip.offsetHeight;
+        var left = x + 18 + w > r.width ? x - w - 18 : x + 18, top = Math.max(0, Math.min(r.height - h, y - h / 2));
+        tip.style.transform = 'translate(' + left + 'px,' + top + 'px)';
+      }
+      function hide() { curId = null; pop.classList.remove('is-on'); tip.classList.remove('is-on'); }
+      $$('.st', sec).forEach(function (p) {
+        p.addEventListener('pointerenter', function (e) { show(p, e); });
+        p.addEventListener('pointermove', move);
+      });
+      svgMap.addEventListener('pointerleave', hide);
+    })();
+    var FINDER_PLACE = /*PLACE*/{"AL|11.7":[671.6,456],"AZ|11.7":[208,403.2],"CO|12.5":[331.5,310.8],"FL|15.5":[744.8,492.4],"GA|15.0":[736,454.3],"IN|13.8":[665.4,293.8],"KS|10.7":[456.2,326.8],"ME|10.7":[919,110.9],"MA|15.5":[897.5,172.6],"MN|9.5":[524.7,155.3],"NJ|12.5":[861.5,230.2],"NC|14.4":[855.2,342],"ND|0.0":[429.1,104.1],"OK|11.7":[470.7,395.1],"PA|17.7":[805.8,251.7],"SD|9.5":[429.7,191.6],"TX|16.9":[434.1,495.3],"WY|9.5":[307.8,213.3],"CT|10.7":[885.9,190.5],"MO|11.7":[560.4,334.8],"WV|9.5":[766.7,301.3],"IL|15.0":[615,298.4],"NM|9.5":[310.6,416.4],"AR|9.5":[563.6,410.1],"CA|23.2":[113,357.4],"DE|9.5":[853.3,260],"DC|10.7":[827.8,267.3],"IA|11.7":[539.9,245.7],"KY|10.7":[686.7,334.4],"MD|13.8":[831.6,263.5],"MI|10.7":[680.2,206.4],"MS|10.7":[618.1,459],"MT|10.7":[286.9,119.5],"NH|9.5":[892.6,140.2],"NY|17.7":[833.9,199.8],"OH|13.2":[723.8,273.7],"OR|12.5":[102.6,155.7],"TN|10.7":[673.5,377.7],"UT|11.7":[226.7,289.6],"VA|15.5":[797.6,323.2],"WA|14.4":[124.2,79.3],"WI|10.7":[594.7,188.8],"NE|10.7":[434.1,256.4],"SC|0.0":[779.3,392.4],"ID|10.7":[186.9,168.1],"NV|11.7":[142.1,272.7],"VT|10.7":[873.3,136],"LA|10.7":[576.2,487.5],"RI|10.7":[904.7,184.3],"AK|9.5":[102.5,539.6],"HI|9.5":[299.4,573.1],"AL|9.5":[671.6,453.8],"AZ|0.0":[208,382.4],"CO|9.5":[331.5,307.8],"FL|11.7":[744.8,492.4],"GA|12.5":[736,451.8],"IN|12.5":[665.4,292.5],"KS|0.0":[456.2,309.3],"ME|9.5":[919,109.6],"MA|15.0":[897.5,172.6],"MN|0.0":[524.7,132],"NJ|9.5":[861.5,230.2],"NC|10.7":[801,370.1],"OK|9.5":[470.7,392.9],"PA|16.0":[805.8,250],"SD|0.0":[429.7,172.3],"TX|12.5":[434.1,490.9],"WY|0.0":[307.8,195.3],"CT|9.5":[885.9,190.5],"MO|9.5":[560.4,332.6],"WV|0.0":[766.7,284.6],"IL|13.8":[615,297.3],"NM|0.0":[310.6,393.3],"AR|0.0":[563.6,391],"CA|16.9":[113,357.4],"DE|0.0":[853.3,260],"IA|9.5":[539.9,243.5],"KY|0.0":[686.7,318.4],"MD|9.5":[831.6,263.5],"MI|0.0":[680.2,184.1],"MS|0.0":[618.1,437.5],"MT|0.0":[286.9,99.7],"NH|0.0":[892.6,140.2],"NY|16.0":[833.9,198],"OH|11.7":[723.8,272.2],"OR|9.5":[102.6,152.7],"TN|9.5":[673.5,376.5],"UT|9.5":[226.7,287.4],"VA|11.7":[797.6,319.4],"WA|10.7":[124.2,75.7],"WI|9.5":[594.7,187.5],"NE|9.5":[434.1,255.2],"ID|0.0":[186.9,149.8],"NV|0.0":[142.1,251.9],"VT|9.5":[873.3,136],"LA|9.5":[576.2,486.2],"RI|9.5":[904.7,184.3],"AK|0.0":[102.5,523.2],"HI|0.0":[299.4,573.1],"AL|10.7":[671.6,455.1],"CO|11.7":[331.5,310],"FL|13.8":[744.8,492.4],"IN|10.7":[665.4,290.7],"MA|9.5":[897.5,172.6],"NJ|11.7":[861.5,230.2],"NC|13.2":[854,342],"OK|10.7":[470.7,394.2],"PA|12.5":[805.8,246.5],"TX|15.0":[434.1,493.4],"MO|10.7":[560.4,333.9],"IL|10.7":[615,294.2],"CA|19.6":[113,357.4],"DC|0.0":[827.8,267.3],"IA|10.7":[539.9,244.8],"MD|13.2":[831.6,263.5],"NY|12.5":[833.9,125.5],"OH|10.7":[723.8,271.2],"OR|11.7":[102.6,154.9],"UT|10.7":[226.7,288.6],"VA|13.8":[797.6,321.6],"WA|13.2":[124.2,78.1],"AL|0.0":[671.6,432.2],"CO|0.0":[331.5,289.9],"FL|9.5":[744.8,492.4],"GA|10.7":[736,450.1],"IN|0.0":[665.4,269.1],"ME|0.0":[919,93.6],"NC|0.0":[801,350.6],"OK|0.0":[470.7,376.1],"PA|0.0":[805.8,225.6],"TX|10.7":[434.1,489.1],"CT|0.0":[885.9,190.5],"IL|9.5":[615,293],"CA|11.7":[113,357.4],"IA|0.0":[539.9,227.3],"MD|10.7":[831.6,263.5],"NY|9.5":[833.9,191.5],"OH|0.0":[723.8,252.9],"OR|0.0":[102.6,134.1],"TN|0.0":[673.5,361.2],"VA|0.0":[797.6,302.4],"WA|9.5":[124.2,74.4],"WI|0.0":[594.7,166.6],"NE|0.0":[434.1,238.8],"VT|0.0":[873.3,136],"LA|0.0":[576.2,470.8],"RI|0.0":[904.7,184.3],"AZ|9.5":[208,401],"GA|9.5":[736,448.8],"IN|9.5":[665.4,289.5],"MA|0.0":[897.5,172.6],"NJ|10.7":[861.5,230.2],"PA|9.5":[805.8,243.5],"TX|14.4":[434.1,492.8],"CA|15.0":[113,357.4],"KY|9.5":[686.7,333.1],"MD|11.7":[831.6,263.5],"MI|9.5":[680.2,205.2],"MS|9.5":[618.1,457.8],"MT|9.5":[286.9,118.3],"NY|10.7":[833.9,192.8],"OH|9.5":[723.8,270],"UT|0.0":[226.7,268.8],"WA|0.0":[124.2,58.9],"NV|9.5":[142.1,270.5],"FL|12.5":[744.8,492.4],"NC|12.5":[853.3,342],"PA|10.7":[805.8,244.8],"TX|11.7":[434.1,490.1],"MO|0.0":[560.4,311.7],"VA|13.2":[797.6,320.9],"ID|9.5":[186.9,166.8],"FL|10.7":[744.8,492.4],"KS|9.5":[456.2,325.6],"NJ|0.0":[861.5,230.2],"PA|11.7":[805.8,245.7],"CA|14.4":[113,357.4],"VA|9.5":[797.6,317.2],"NV|10.7":[142.1,271.7],"CO|10.7":[331.5,309.1],"FL|0.0":[744.8,492.4],"NC|9.5":[801,368.8],"TX|0.0":[434.1,469.3],"IL|0.0":[615,270.1],"CA|0.0":[113,357.4],"MD|0.0":[831.6,263.5],"NY|0.0":[833.9,171.8],"VA|10.7":[797.6,318.5],"CA|13.8":[113,357.4],"GA|0.0":[736,428]}/*/PLACE*/, placeLog = window.__TC_PLACE_LOG = {}; // baked bubble spots (same tool as the labels)
+    function placeBubble(g, r) {
+      var id = g.getAttribute('data-bub'), b = base[id]; if (!b) return;
+      var x = b.cx, y = b.cy, pk = id + '|' + (+r).toFixed(1);
+      if (FINDER_PLACE[pk]) { x = FINDER_PLACE[pk][0]; y = FINDER_PLACE[pk][1]; }
+      else if (b.below !== null && r) {
+        // under the name if the bubble's centre is still inside the state, otherwise beside it
+        var P = svgMap.createSVGPoint(); P.x = b.cx; P.y = b.below + r;
+        var tries = [[b.cx, b.below + r], [b.right + r + 3, b.mid], [b.left - r - 3, b.mid], [b.cx, b.above - r]], hit = null;
+        for (var k = 0; k < tries.length && !hit; k++) { P.x = tries[k][0]; P.y = tries[k][1]; if (b.path.isPointInFill(P)) hit = tries[k]; }
+        hit = hit || tries[0]; x = hit[0]; y = hit[1]; // never on top of the name
+      }
+      if (!FINDER_PLACE[pk]) placeLog[pk] = [+x.toFixed(1), +y.toFixed(1)];
+      g.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')');
+    }
     function match(u, ignoreState) {
       if (st.type && u.type !== st.type) return false;
       if (st.field > -1 && !FIELDS[st.field][1].test(u.programs)) return false;
@@ -388,7 +568,8 @@
       var per = {}; data.forEach(function (u) { if (match(u, true)) { var s = stateOf(u); per[s] = (per[s] || 0) + 1; } });
       $$('.bub', sec).forEach(function (g) {
         var s = g.getAttribute('data-bub'), n = per[s] || 0;
-        g.querySelector('circle').setAttribute('r', n ? (7 + Math.sqrt(n) * 4.2).toFixed(1) : 0);
+        var rr = n ? 6.5 + Math.sqrt(n) * 3 : 0;
+        g.querySelector('circle').setAttribute('r', rr.toFixed(1)); placeBubble(g, rr);
         g.querySelector('text').textContent = n || '';
         g.classList.toggle('is-dim', !!st.state && st.state !== s);
       });
@@ -410,17 +591,15 @@
     }
     list.addEventListener('click', function (e) {
       var b = e.target.closest('[data-pick]'); if (!b) return;
-      var n = b.getAttribute('data-pick'), i = picks.indexOf(n);
-      i > -1 ? picks.splice(i, 1) : picks.push(n);
-      b.setAttribute('aria-pressed', String(i < 0)); b.textContent = i < 0 ? 'Shortlisted' : 'Shortlist';
-      if (leadApi && leadApi.setSelection) leadApi.setSelection(picks);
-      toast();
+      var n = b.getAttribute('data-pick');
+      if (window.TCShort) window.TCShort.toggle(n); else { var i = picks.indexOf(n); i > -1 ? picks.splice(i, 1) : picks.push(n); render(); }
     });
-    var t = document.createElement('div'); t.className = 'dir-toast'; t.setAttribute('role', 'status');
-    t.innerHTML = '<span data-toast-n></span><a class="btn btn--primary btn--sm" href="#contact"><span>Evaluate my shortlist</span><svg class="ico"><use href="#i-arrow"/></svg></a>';
-    document.body.appendChild(t);
-    function toast() { t.classList.toggle('is-on', picks.length > 0); $('[data-toast-n]', t).textContent = picks.length + (picks.length === 1 ? ' university shortlisted' : ' universities shortlisted'); }
-    t.querySelector('a').addEventListener('click', function () { setTimeout(function () { t.classList.remove('is-on'); }, 300); });
+    // one shortlist for the whole site: the finder, the Atlas and the counselling card all share it
+    if (window.TCShort) {
+      picks = window.TCShort.get();
+      window.TCShort.onChange(function (l) { picks = l; $$('[data-pick]', list).forEach(function (b) { var on = picks.indexOf(b.getAttribute('data-pick')) > -1; b.setAttribute('aria-pressed', String(on)); b.textContent = on ? 'Shortlisted' : 'Shortlist'; }); if (leadApi && leadApi.setSelection) leadApi.setSelection(picks); });
+      if (leadApi && leadApi.setSelection && picks.length) leadApi.setSelection(picks);
+    }
     render();
     return { render: render };
   })();
@@ -470,12 +649,14 @@
     var loans = $('[data-loans]'); if (!loans || !motion) return;
     $$('li', loans).forEach(function (n) { var c = n.cloneNode(true); var im = $('img', c); im.alt = ''; c.setAttribute('aria-hidden', 'true'); loans.appendChild(c); });
     var lt = gsap.to(loans, { xPercent: -50, ease: 'none', duration: 40, repeat: -1 });
-    var hovered = false;
-    loans.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') { hovered = true; gsap.to(lt, { timeScale: 0, duration: .5, overwrite: true }); } });
-    loans.addEventListener('pointerleave', function () { if (!hovered) return; hovered = false; gsap.to(lt, { timeScale: 1, duration: .6, overwrite: true }); });
+    // speed is eased on the GSAP ticker (no new tween per scroll frame): scroll flicks add a boost that decays
+    var hovered = false, boost = 0, ts = 1, on = false;
+    function drive() { boost *= .94; var want = hovered ? 0 : 1 + boost; ts += (want - ts) * .12; if (Math.abs(want - ts) < .002) ts = want; lt.timeScale(ts); }
+    loans.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') hovered = true; });
+    loans.addEventListener('pointerleave', function () { hovered = false; });
     ScrollTrigger.create({ trigger: '.loans', start: 'top bottom', end: 'bottom top', refreshPriority: -1,
-      onUpdate: function (st) { if (hovered) return; gsap.to(lt, { timeScale: 1 + Math.min(Math.abs(st.getVelocity()) / 300, 5), duration: .2, overwrite: true, onComplete: function () { if (!hovered) gsap.to(lt, { timeScale: 1, duration: 1.2 }); } }); },
-      onToggle: function (st) { st.isActive ? lt.play() : lt.pause(); } });
+      onUpdate: function (st) { boost = Math.max(boost, Math.min(Math.abs(st.getVelocity()) / 300, 5)); },
+      onToggle: function (st) { if (st.isActive) { lt.play(); if (!on) { on = true; gsap.ticker.add(drive); } } else { lt.pause(); if (on) { on = false; gsap.ticker.remove(drive); } } } });
   })();
 
 
@@ -644,7 +825,7 @@
       });
     });
     h.value = total(); drawPlan();
-    upd();
+    whenNear(f, upd); // first cheque render waits until the calculator is near the screen
     function place() { pickers.forEach(function (P) { P.go(+P.input.value, false); P.look(); }); }
     place(); window.addEventListener('load', place); window.addEventListener('resize', place);
     // a one-time nudge shows the strip can be swiped
@@ -899,7 +1080,7 @@
       typing(function () {
         var near = ranked.slice(0, 3).filter(function (r) { return r.s > 0; }).map(function (r) { return r.it; });
         if (!near.length) near = KB.filter(function (k) { return !asked[k.q]; }).slice(0, 3);
-        var wa = 'https://wa.me/917010902329?text=' + encodeURIComponent('Hi Tutee Connect, I have a question: ' + text.trim());
+        var wa = 'https://wa.me/917358364959?text=' + encodeURIComponent('Hi Tutee Connect, I have a question: ' + text.trim());
         bubble('bot', 'Good question! I don’t have a ready answer for that one, and I’d rather not guess. Our counsellors can answer it personally.<span class="msg__acts"><a class="msg__cta" href="#contact">Ask a counsellor →</a><a class="msg__cta msg__cta--wa" href="' + wa + '" target="_blank" rel="noopener">Ask on WhatsApp</a></span><span class="msg__near">Or one of these might help:</span>');
         renderChips(near, true); busy = false;
       }, 800);
@@ -926,8 +1107,14 @@
     });
     form.addEventListener('submit', function (e) { e.preventDefault(); var v = input.value; if (!v.trim() || busy) return; input.value = ''; ask(v); });
     $('[data-ask-reset]', root).addEventListener('click', reset);
+
+    // short hint on phones so it never gets cut off
+    (function () { var full = input.getAttribute('placeholder'), mq = matchMedia('(max-width: 640px)');
+      function fit() { input.setAttribute('placeholder', mq.matches ? 'Ask anything…' : full); }
+      fit(); if (mq.addEventListener) mq.addEventListener('change', fit); })();
+    // live sound wave + microphone: assets/js/askwave.js (same component as the Canada page)
     log.addEventListener('click', function (e) { var a = e.target.closest('a[href^="#"]'); if (!a) return; });
-    greet();
+    whenNear(log, greet);
   })();
 
   /* ---------------- FAQ ---------------- */
@@ -972,6 +1159,7 @@
     var pp = $('[data-pp]', scene), cover = $('[data-pp-cover]', scene), tilt = $('[data-pp-tilt]', scene), hint = $('[data-pp-hint]', scene);
     var stamps = $$('[data-pp-stamp]', scene), TH = [.6, .73, .86], done = stamps.map(function () { return false; });
     function rot(el) { return parseFloat(getComputedStyle(el).getPropertyValue('--r')) || 0; }
+    var upright = window.matchMedia('(max-width: 760px)'), lastP = 0;
     function slam(i) {
       var el = stamps[i], r = rot(el);
       gsap.killTweensOf(el);
@@ -984,10 +1172,16 @@
     }
     function lift(i) { gsap.killTweensOf(stamps[i]); gsap.to(stamps[i], { opacity: 0, scale: 1.3, duration: .2, ease: 'power2.out' }); }
     function set(p) {
+      lastP = p;
       var rise = Math.min(1, p / .25), open = Math.max(0, Math.min(1, (p - .25) / .25));
       var er = 1 - Math.pow(1 - rise, 3), eo = open < .5 ? 2 * open * open : 1 - Math.pow(-2 * open + 2, 2) / 2;
-      gsap.set(pp, { y: (1 - er) * 160, rotationX: 36 - er * 22 - eo * 4, xPercent: -25 + eo * 25, opacity: Math.min(1, rise * 2) });
-      gsap.set(cover, { rotationY: -180 * eo });
+      if (upright.matches) { // phones: the book opens top-to-bottom, the cover swings up on its top edge
+        gsap.set(pp, { y: (1 - er) * 120, rotationX: 22 - er * 14 - eo * 4, xPercent: 0, yPercent: -25 + eo * 25, opacity: Math.min(1, rise * 2) });
+        gsap.set(cover, { rotationY: 0, rotationX: 180 * eo });
+      } else {
+        gsap.set(pp, { y: (1 - er) * 160, rotationX: 36 - er * 22 - eo * 4, xPercent: -25 + eo * 25, yPercent: 0, opacity: Math.min(1, rise * 2) });
+        gsap.set(cover, { rotationX: 0, rotationY: -180 * eo });
+      }
       TH.forEach(function (t, i) {
         if (p >= t && !done[i]) { done[i] = true; slam(i); }
         else if (p < t - .03 && done[i]) { done[i] = false; lift(i); }
@@ -1025,6 +1219,7 @@
       scene.addEventListener('pointerleave', function () { rx(0); ry(0); });
     }
     if (!motion) { stamps.forEach(function (el) { el.style.opacity = 1; }); if (hint) hint.classList.add('is-on'); }
+    if (upright.addEventListener) upright.addEventListener('change', function () { set(lastP); });
     return { set: set };
   })();
 
@@ -1056,7 +1251,7 @@
     if (heroImg && !heroImg.complete) { heroImg.addEventListener('load', intro, { once: true }); setTimeout(intro, 1600); } else intro();
 
     ScrollTrigger.create({ trigger: '#home', start: 'top top', end: 'bottom bottom', toggleClass: { targets: document.documentElement, className: 'at-hero' } });
-    var ppP = { p: 0 };
+    var ppP = { p: 0 }, heroAfter = $('[data-hero-after]');
     if (Passport) Passport.set(0);
     var tl = gsap.timeline({ defaults: { ease: 'none' }, scrollTrigger: { trigger: '#home', start: 'top top', end: 'bottom bottom', scrub: true, invalidateOnRefresh: true } });
     tl.to('[data-hero-copy]', { y: 60, opacity: 0, duration: .14 }, 0)
@@ -1073,7 +1268,7 @@
       .to('[data-hero-layer]', { yPercent: 10, duration: .3, ease: 'power2.in' }, .62)
       .to('[data-hero-night]', { opacity: 1, duration: .14 }, .72)
       .fromTo('[data-hero-after]', { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: .12, ease: 'power2.out',
-        onUpdate: function () { $('[data-hero-after]').classList.toggle('is-live', this.progress() > .6); } }, .68)
+        onUpdate: function () { var live = this.progress() > .6; if (heroAfter.__l !== live) { heroAfter.__l = live; heroAfter.classList.toggle('is-live', live); } } }, .68)
       // the passport: rises, opens, and the stamps land as you keep scrolling
       .to(ppP, { p: 1, duration: .38, onUpdate: function () { if (Passport) Passport.set(ppP.p); } }, .7)
       .to({}, { duration: .06 }, 1.08);
@@ -1090,6 +1285,8 @@
       stage.addEventListener('pointerleave', function () { wx(0); wy(0); lx(0); ly(0); });
     }
 
+    // everything below the hero is wired in a second task, so the first paint and the hero intro are not held up
+    setTimeout(function () {
     // headings: masked word rise (each section keeps its own motion beyond this)
     $$('[data-split]').forEach(function (h) {
       gsap.fromTo($$('.wi', h), { yPercent: 115 }, { yPercent: 0, duration: 1.15, ease: 'power4.out', stagger: .05, scrollTrigger: { trigger: h, start: 'top 86%', once: true } });
@@ -1128,8 +1325,16 @@
         .to('[data-why-dim]', { opacity: .7, ease: 'none', duration: .238 }, .5);
     });
     // phones (no pin): the same word reveal, tied to the paragraph's own scroll
+    // (each paragraph plays its own reveal once, so it always finishes — no scrub that can stop half-way)
     mm.add('(max-width: 760px)', function () {
-      gsap.fromTo(whyWords, { opacity: 0, yPercent: 70 }, { opacity: 1, yPercent: 0, ease: 'power2.out', duration: 1.4, stagger: 1, scrollTrigger: { trigger: '[data-why-text]', start: 'top 85%', end: 'bottom 35%', scrub: .3 } });
+      $$('[data-why-reasons] li').forEach(function (r) { r.style.opacity = ''; r.style.transform = ''; r.style.removeProperty('--fill'); r.classList.remove('is-lit'); });
+      // fade only (no movement), so every word stays on its line while it appears
+      gsap.set(whyWords, { clearProps: 'transform' });
+      $$('[data-why-text]').forEach(function (p) {
+        var ws = $$('.rw', p);
+        gsap.fromTo(ws, { opacity: 0 }, { opacity: 1, ease: 'power1.out', duration: .45, stagger: Math.min(.03, 1 / ws.length),
+          scrollTrigger: { trigger: p, start: 'top 90%', once: true } });
+      });
     });
 
     // DESTINATIONS — pinned; each scroll step wipes in the next city
@@ -1159,7 +1364,8 @@
 
     gsap.fromTo('[data-note]', { y: 70, opacity: 0, rotation: -4 }, { y: 0, opacity: 1, rotation: 0, duration: 1.2, ease: 'power3.out', scrollTrigger: { trigger: '[data-note]', start: 'top 92%', once: true } });
 
-    window.addEventListener('load', function () { ScrollTrigger.refresh(); });
+    if (document.readyState === 'complete') ScrollTrigger.refresh(); else window.addEventListener('load', function () { ScrollTrigger.refresh(); });
+    }, 0);
   }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(choreograph); else choreograph();
 })();

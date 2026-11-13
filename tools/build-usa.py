@@ -73,17 +73,29 @@ dx_pts = ''.join(f'<g class="dx__pt{" is-active" if i == 0 else ""}" data-dx-pt=
 plane = '<g class="dx__plane" data-dx-plane><g data-dx-s><circle class="dx__glow" r="20"/><path d="M11 0 L1 -2 L-3 -9 L-6 -9 L-4 -2 L-9 -2 L-11 -5 L-13 -5 L-12 0 L-13 5 L-11 5 L-9 2 L-4 2 L-6 9 L-3 9 L1 2 Z"/></g></g>'
 dx_map = f'<svg class="dx__map" viewBox="0 0 975 610" preserveAspectRatio="none" aria-hidden="true" data-dx-map><g class="dx__states">{dx_states}</g><g class="dx__route">{dx_route}</g>{dx_pts}{plane}</svg>'
 ROT = [-4, 3, -2.5, 4, -3.5, 2]
+# where each postcard photo was taken (real places; coordinates in decimal degrees)
+PLACE = {'ny': ('Statue of Liberty & Midtown Manhattan, New York', '40.6892° N, 74.0445° W', 'The Statue of Liberty with the Manhattan skyline at sunset'),
+         'boston': ('Boston Harbor & Custom House Tower, MA', '42.3591° N, 71.0500° W', 'Boston Harbor and the downtown skyline at dusk'),
+         'dc': ('U.S. Capitol & National Mall, Washington, D.C.', '38.8899° N, 77.0091° W', 'The U.S. Capitol and the National Mall from above'),
+         'chicago': ('Chicago Theatre, State Street, Illinois', '41.8855° N, 87.6274° W', 'The Chicago Theatre sign on a snowy State Street'),
+         'sf': ('Bay Bridge from downtown San Francisco, CA', '37.7983° N, 122.3778° W', 'The Bay Bridge at sunrise from a downtown street'),
+         'gc': ('Monument Valley, Arizona–Utah', '36.9980° N, 110.0985° W', 'A desert highway towards the buttes of Monument Valley')}
 cards = []
 for i, (k, c, n, d, cap) in enumerate(DEST):
     short = n.split(' & ')[0].replace('Washington, D.C.', 'Washington').replace('San Francisco Bay', 'San Francisco').replace('The Southwest', 'the Southwest')
+    loc, geo, alt = PLACE[c]
+    lz = 'eager' if i < 2 else 'lazy'
+    dimg = f'<img class="pc__img" src="assets/img/dest/{c}-1600.webp" srcset="assets/img/dest/{c}-800.webp 800w, assets/img/dest/{c}-1600.webp 1600w" sizes="(max-width: 760px) 62vw, 400px" alt="{esc(alt)}" width="1600" height="2400" decoding="async" loading="{lz}">'
     cards.append(
-      f'<article class="pc" data-pc="{i}" style="--rot:{ROT[i % len(ROT)]}deg" aria-label="Postcard from {esc(n)}"><div class="pc__in">'
-      f'<div class="pc__face pc__front">{img(k, "", cap, "loading=" + chr(34) + ("eager" if i < 2 else "lazy") + chr(34), sizes="(max-width: 760px) 80vw, 40vw")}'
-      f'<span class="pc__greet">Greetings from</span><span class="pc__name">{esc(short)}</span>'
-      f'<svg class="pc__post" viewBox="0 0 120 120" aria-hidden="true"><defs><path id="pcp{i}" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0"/></defs><circle cx="60" cy="60" r="54"/><circle cx="60" cy="60" r="34"/><text font-size="11"><textPath href="#pcp{i}" textLength="270">TUTEE CONNECT · AIRMAIL · USA ·</textPath></text><text x="60" y="68" text-anchor="middle" font-size="22">0{i + 1}</text></svg>'
-      f'<span class="pc__cap">{esc(cap)} · {esc(P[k]["by"])}, {P[k]["lic"]}</span></div>'
-      f'<div class="pc__face pc__back"><div class="pc__msg"><p>{esc(d)}</p><p class="pc__sign">— See you in {esc(short)}!<br>Tutee Connect</p></div>'
-      f'<div class="pc__addr"><span class="pc__stamp"><b>{esc(short[:3].upper())}</b><small>USA</small></span><i>To</i><span>A future student</span><span>Somewhere in India</span><span>Bound for the USA</span></div></div>'
+      f'<article class="pc" data-pc="{i}" style="--rot:{ROT[i % len(ROT)] * .5}deg" aria-label="{esc(n)}"><div class="pc__in">'
+      f'<div class="pc__face pc__front">{dimg}'
+      f'<button type="button" class="pc__expand" data-pc-expand aria-label="Expand photo of {esc(n)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5M4 4l6 6M20 4l-6 6M4 20l6-6M20 20l-6-6"/></svg>Expand</button>'
+      f'<button type="button" class="pc__more" data-pc-more aria-label="Turn the card over"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>'
+      f'<div class="pc__info"><div class="pc__row"><h4 class="pc__title">{esc(n)}</h4><span class="pc__count">{i + 1} / {len(DEST)}</span></div>'
+      f'<p class="pc__desc">{esc(d)}</p>'
+      f'<p class="pc__loc"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span>{esc(loc)}<br>{geo}</span></p>'
+      f'</div></div>'
+      f'<div class="pc__face pc__back"><div class="pc__msg"><span class="pc__greet">Greetings from {esc(short)}</span><p>{esc(d)}</p><p class="pc__sign">— See you in {esc(short)}!<br>Tutee Connect</p></div></div>'
       f'</div></article>')
 dx_cards = ''.join(cards)
 tabs = ''.join(f'<button type="button" class="dx__tab{" is-active" if i == 0 else ""}" data-dx-go="{i}" data-name="{esc(n)}" data-desc="{esc(d)}" aria-pressed="{str(i == 0).lower()}"><span>0{i + 1}</span>{esc(n)}</button>' for i, (k, c, n, d, cap) in enumerate(DEST))
@@ -93,7 +105,19 @@ s = s.replace('%%DX_MAP%%', dx_map).replace('%%DX_CARDS%%', dx_cards).replace('%
 fstates = ''.join(f'<path class="st" data-st="{st["id"]}" d="{st["d"]}"><title>{esc(st["name"])}</title></path>' for st in STATES)
 bubbles = ''.join(f'<g class="bub" data-bub="{st["id"]}" transform="translate({st["cx"]} {st["cy"]})" tabindex="-1"><circle r="0"/><text dy="4"></text></g>' for st in STATES if st['id'] not in ('AK', 'HI'))
 bubbles += ''.join(f'<g class="bub" data-bub="{st["id"]}" transform="translate({st["cx"]} {st["cy"]})" tabindex="-1"><circle r="0"/><text dy="4"></text></g>' for st in STATES if st['id'] in ('AK', 'HI'))
-s = s.replace('%%FINDER_MAP%%', f'<g class="finder__states">{fstates}</g><g class="finder__bubbles">{bubbles}</g>')
+# US flag laid under the states (clipped to their outlines)
+_clip = ''.join(f'<path d="{st["d"]}"/>' for st in STATES)
+_W, _H = 975, 610; _sh = _H / 13; _cw, _ch = _W * .4, _sh * 7
+_stripes = ''.join(f'<rect x="0" y="{k * _sh:.2f}" width="{_W}" height="{_sh + .5:.2f}" fill="{"#b22234" if k % 2 == 0 else "#ffffff"}"/>' for k in range(13))
+_star = 'M0,-1 L.2245,-.309 L.9511,-.309 L.3633,.118 L.5878,.809 L0,.382 L-.5878,.809 L-.3633,.118 L-.9511,-.309 L-.2245,-.309Z'
+_stars = []
+for r in range(9):
+    for c in range(6 if r % 2 == 0 else 5):
+        x = _cw / 12 * (2 * c + (1 if r % 2 == 0 else 2)); y = _ch / 10 * (r + 1)
+        _stars.append(f'<path d="{_star}" transform="translate({x:.1f} {y:.1f}) scale({_ch * .0616 / 2 * 1.6:.2f})"/>')
+_flag = (f'<defs><clipPath id="usClip">{_clip}</clipPath></defs><g class="finder__flag" clip-path="url(#usClip)">'
+         f'<image href="assets/img/flag-us-2400.webp" x="-10" y="-10" width="{_W + 20}" height="{_H + 20}" preserveAspectRatio="xMidYMid slice"/></g>')
+s = s.replace('%%FINDER_MAP%%', f'{_flag}<g class="finder__states">{fstates}</g><g class="finder__bubbles">{bubbles}</g>')
 
 # services (content unchanged from the original site)
 SVC = json.loads((root / 'tools/services.json').read_text())
@@ -104,7 +128,7 @@ for i, sv in enumerate(SVC):
     on = i == 0
     paras = ''.join(f'<p>{p}</p>' for p in sv['full'])
     panels.append(f'''      <li class="xp__p{' is-on' if on else ''}" data-xp="{i}">
-        <div class="xp__bg" aria-hidden="true"><img src="{sv['img']}" alt="" width="800" height="534" loading="lazy" style="object-position:{sv.get('pos', '50% 50%')}"></div>
+        <div class="xp__bg" aria-hidden="true"><img src="{sv['img']}" srcset="{sv['img'].replace('-1600.', '-800.')} 800w, {sv['img']} 1600w" sizes="(max-width: 760px) 100vw, 70vw" alt="" width="800" height="534" loading="lazy" decoding="async" style="object-position:{sv.get('pos', '50% 50%')}"></div>
         <button type="button" class="xp__face" id="xpBtn{i}" aria-expanded="{'true' if on else 'false'}" aria-controls="xpBody{i}" data-xp-btn>
           <span class="xp__no">{i + 1:02d}</span>
           <svg class="ico xp__ico" aria-hidden="true"><use href="#i-{ICON[i]}"/></svg>
@@ -125,7 +149,7 @@ s = s.replace('%%SERVICES%%', '\n'.join(panels))
 # STEM OPT ruler: one tick per month, grouped by the stage it belongs to
 s = s.replace('%%OPT_TICKS%%', ''.join(f'<i data-m="{m}" class="{"a" if m <= 12 else "b"}{" yr" if m % 12 == 0 else ""}"></i>' for m in range(1, 37)))
 
-used = ['brooklyn', 'manhattan_night', 'boston', 'capitol', 'chicago', 'stanford', 'gc_rays']
+used = ['brooklyn']  # destination postcards now use Tutee Connect's own photos
 cred = '; '.join(f'<a href="{P[k]["page"]}" target="_blank" rel="noopener">{esc(P[k]["place"])}</a> by {esc(P[k]["by"])} (<a href="{P[k]["licurl"]}" target="_blank" rel="noopener">{P[k]["lic"]}</a>)' for k in used)
 s = s.replace('%%CREDITS%%', f'<p class="foot__credits">Photography from Wikimedia Commons: {cred}. Images are cropped and colour-graded on this page. US map: US Census Bureau via us-atlas.</p>')
 # daily paper: embed the current editions (offline / single-file fallback) and publish the JSON the page refreshes from

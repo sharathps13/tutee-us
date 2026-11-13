@@ -97,28 +97,15 @@
   resultsEl.addEventListener('pointerover', function (e) { var li = e.target.closest('[data-u]'); if (li) { hover = U[+li.getAttribute('data-u')]; kickDraw(); } });
   resultsEl.addEventListener('pointerleave', function () { hover = null; kickDraw(); });
 
-  // ---- shortlist + enquiry ----
-  var selbar = $('[data-selbar]'), dialog = $('#applyDialog'), formApi = null, form = $('[data-apply-form]');
-  try { picks = JSON.parse(localStorage.getItem('tc-shortlist') || '[]'); } catch (e) { picks = []; }
-  function togglePick(name) { picks = picks.indexOf(name) > -1 ? picks.filter(function (n) { return n !== name; }) : picks.concat(name); syncPicks(); }
+  // ---- shortlist (shared with the landing page through TCShort: bottom bar + application form) ----
+  var SL = window.TCShort;
+  picks = SL ? SL.get() : [];
+  function togglePick(name) { if (SL) SL.toggle(name); }
   function syncPicks() {
-    try { localStorage.setItem('tc-shortlist', JSON.stringify(picks)); } catch (e) {}
     $$('[data-u]', resultsEl).forEach(function (li) { var on = picks.indexOf(U[+li.getAttribute('data-u')].name) > -1; li.classList.toggle('is-picked', on); var b = $('[data-pick]', li); b.setAttribute('aria-pressed', on); b.textContent = on ? '✓ Shortlisted' : '+ Shortlist'; });
-    if (selbar) {
-      $('[data-sel-count]').textContent = picks.length; $('[data-sel-word]').textContent = picks.length === 1 ? 'university' : 'universities';
-      if (picks.length) { selbar.hidden = false; requestAnimationFrame(function () { selbar.classList.add('is-on'); }); } else { selbar.classList.remove('is-on'); setTimeout(function () { if (!picks.length) selbar.hidden = true; }, 300); }
-    }
-    if (formApi) formApi.setSelection(picks);
     kickDraw();
   }
-  if (form && window.TCForms) formApi = window.TCForms.mount(form, { dynamicButton: true, onSelectionChange: function (l) { picks = l; syncPicks(); } });
-  var proceed = $('[data-proceed]');
-  if (proceed && dialog) {
-    proceed.addEventListener('click', function () { if (formApi) formApi.setSelection(picks); if (typeof dialog.showModal === 'function') dialog.showModal(); else dialog.setAttribute('open', ''); document.body.classList.add('lock'); });
-    $('[data-apply-close]').addEventListener('click', function () { dialog.close(); });
-    dialog.addEventListener('close', function () { document.body.classList.remove('lock'); });
-    dialog.addEventListener('click', function (e) { if (e.target === dialog) dialog.close(); });
-  }
+  if (SL) SL.onChange(function (l) { picks = l; syncPicks(); });
 
   // ---- controls ----
   var qEl = $('[data-a-q]'), qt;
@@ -224,4 +211,12 @@
   if (q0) { qEl.value = q0; F.q = q0; }
   window.TCDir = { search: function (q) { qEl.value = q || ''; F.q = qEl.value; apply(); } };
   size(); apply(); syncPicks();
+})();
+// cover photo ends exactly where the filter bar starts
+(function () {
+  var hero = document.querySelector('.atlas__hero'), atlas = document.querySelector('[data-atlas]'); if (!hero || !atlas) return;
+  // measured only while visible: in the single-file build the atlas starts hidden, so a 0 height would collapse the photo
+  function fit() { if (!hero.offsetHeight) return; atlas.style.setProperty('--atlas-hero-h', (hero.offsetTop + hero.offsetHeight - 60) + 'px'); }
+  fit(); window.addEventListener('resize', fit); if (document.fonts) document.fonts.ready.then(fit);
+  if ('ResizeObserver' in window) new ResizeObserver(fit).observe(hero);
 })();

@@ -88,6 +88,8 @@
     }
     function openIt() {
       if (current && current !== api) current.close(false);
+      // a modal <dialog> sits in the browser's top layer: the list must live inside it or it opens behind
+      var host = wrap.closest('dialog[open]') || document.body; if (pop.parentNode !== host) host.appendChild(pop);
       current = api; pop.hidden = false; place();
       requestAnimationFrame(function () { wrap.classList.add('is-open'); pop.classList.add('is-open'); });
       btn.setAttribute('aria-expanded', 'true');
@@ -148,6 +150,17 @@
 
   var ACCESS_KEY = 'c3d875cf-0480-4d8e-a7be-2fb2c1268a0d';
   var ENDPOINT = 'https://api.web3forms.com/submit';
+  /* Google Sheet + email to business@tuteeconnect.com (google-apps-script/Code.gs, deployed as a Web app).
+     Paste the Web app URL here (or set window.TC_LEADS_URL before this script). While it is empty, leads go by Web3Forms only. */
+  var LEADS_URL = window.TC_LEADS_URL || '';
+  var LEAD_SOURCE = 'USA landing page';
+  var STATES = ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala',
+    'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
+    'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu', 'Delhi', 'Jammu and Kashmir',
+    'Ladakh', 'Lakshadweep', 'Puducherry', 'Outside India'];
+  var COURSES = ['MS in Computer Science', 'MS in Data Science / AI', 'MS in Engineering', 'MS in Business Analytics', 'MBA / Business & Management', 'Health / Public Health',
+    'Bachelor\u2019s degree', 'PhD / Research', 'Not decided yet', 'Other'];
+  var CALL_TIMES = ['Morning (9 AM \u2013 12 PM)', 'Afternoon (12 \u2013 3 PM)', 'Evening (3 \u2013 6 PM)', 'Late evening (6 \u2013 9 PM)', 'Any time'];
 
   var CODES = [
     ['AE', '+971'], ['AF', '+93'], ['AR', '+54'], ['AT', '+43'], ['AU', '+61'], ['BE', '+32'], ['BR', '+55'], ['CH', '+41'], ['CL', '+56'], ['CN', '+86'],
@@ -160,6 +173,13 @@
 
   var NAMES = {"AE": "United Arab Emirates", "AF": "Afghanistan", "AR": "Argentina", "AT": "Austria", "AU": "Australia", "BE": "Belgium", "BR": "Brazil", "CH": "Switzerland", "CL": "Chile", "CN": "China", "CO": "Colombia", "DE": "Germany", "DK": "Denmark", "DZ": "Algeria", "EG": "Egypt", "ES": "Spain", "FI": "Finland", "FR": "France", "GR": "Greece", "HU": "Hungary", "ID": "Indonesia", "IE": "Ireland", "IN": "India", "IR": "Iran", "IT": "Italy", "JP": "Japan", "KE": "Kenya", "KR": "South Korea", "LK": "Sri Lanka", "MA": "Morocco", "MM": "Myanmar", "MX": "Mexico", "MY": "Malaysia", "NG": "Nigeria", "NL": "Netherlands", "NO": "Norway", "NZ": "New Zealand", "PE": "Peru", "PH": "Philippines", "PK": "Pakistan", "PL": "Poland", "PT": "Portugal", "QA": "Qatar", "RO": "Romania", "RU/KZ": "Russia / Kazakhstan", "SA": "Saudi Arabia", "SE": "Sweden", "SG": "Singapore", "TH": "Thailand", "TN": "Tunisia", "TR": "Turkey", "TZ": "Tanzania", "UA": "Ukraine", "UG": "Uganda", "UK": "United Kingdom", "US/CA": "United States / Canada", "VE": "Venezuela", "VN": "Vietnam", "ZA": "South Africa"};
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  function selectHTML(uid, name, label, icon, list, ph, req) {
+    return '<div class="field field--sel"><label class="field__label" for="' + uid + '-' + name + '">' + label + '</label>' +
+      '<span class="field__box field__box--select field__box--wide"><select id="' + uid + '-' + name + '" name="' + name + '" aria-label="' + esc(label.replace(' *', '')) + '"' + (req ? ' required' : '') + ' aria-describedby="' + uid + '-' + name + 'e">' +
+      '<option value="">' + esc(ph) + '</option>' + list.map(function (v) { return '<option value="' + esc(v) + '">' + esc(v) + '</option>'; }).join('') + '</select></span>' +
+      '<p class="field__err" id="' + uid + '-' + name + 'e" aria-live="polite"></p></div>';
+  }
 
   function fieldsHTML(uid) {
     var opts = CODES.map(function (c) { return '<option value="' + c[1] + '" data-badge="' + c[0].split('/')[0] + '" data-label="' + esc(NAMES[c[0]] || c[0]) + '" data-sub="' + c[1] + '" data-short="' + c[0].split('/')[0] + ' ' + c[1] + '"' + (c[1] === '+91' ? ' selected' : '') + '>' + c[0] + ' (' + c[1] + ')</option>'; }).join('');
@@ -177,8 +197,14 @@
       '</span><p class="field__err" id="' + uid + '-pe" aria-live="polite"></p></div>' +
       '<label class="field"><span class="field__label">Your Email *</span><span class="field__box"><svg class="ico"><use href="#i-mail"/></svg>' +
         '<input type="email" name="email" placeholder="Your Email *" autocomplete="email" required aria-describedby="' + uid + '-ee"><i class="field__flag" aria-hidden="true"></i></span><span class="field__err" id="' + uid + '-ee" aria-live="polite"></span></label>' +
-      '<div class="field"><span class="field__label">Destination</span><div class="chips" data-chips><svg class="ico"><use href="#i-landmark"/></svg><span class="chips__empty" data-chips-empty>General US Inquiry</span></div>' +
-        '<input type="hidden" name="destination" value="General US Inquiry" data-destination></div>' +
+      selectHTML(uid, 'state', 'State *', 'i-pin', STATES, 'Select your state', true) +
+      selectHTML(uid, 'course', 'Course *', 'i-cap', COURSES, 'Select a course', true) +
+      selectHTML(uid, 'call_time', 'Preferred call time (IST) *', 'i-clock', CALL_TIMES, 'Select a time', true) +
+      '<div class="field field--uni" data-uniwrap><span class="field__label" id="' + uid + '-ul">Shortlisted universities</span>' +
+        '<input type="hidden" name="university" value="" data-uni><input type="hidden" name="destination" value="General US Inquiry" data-destination>' +
+        '<button type="button" class="field__box unis__btn is-empty" data-uni-btn aria-haspopup="dialog" aria-expanded="false" aria-labelledby="' + uid + '-ul ' + uid + '-uv">' +
+          '<svg class="ico"><use href="#i-landmark"/></svg><span class="unis__val" id="' + uid + '-uv" data-uni-val>Universities (optional)</span>' +
+          '<span class="unis__n" data-uni-n hidden></span><svg class="unis__chev" viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 8 10 12.5 14.5 8"/></svg></button></div>' +
       '<button class="btn btn--primary btn--block lead__submit" type="submit" data-submit><span data-submit-label>Submit Profile</span><svg class="ico"><use href="#i-arrow"/></svg></button>' +
       '<p class="lead__note">Free immediate consultation.</p>';
   }
@@ -187,38 +213,99 @@
     opts = opts || {};
     var slot = form.querySelector('[data-form-slot]') || form;
     var uid = 'lf' + Math.random().toString(36).slice(2, 7);
+    var extra = {};
     slot.innerHTML = fieldsHTML(uid);
     var status = form.querySelector('[data-status]');
     var btn = form.querySelector('[data-submit]');
     var label = form.querySelector('[data-submit-label]');
     var dest = form.querySelector('[data-destination]');
-    var chips = form.querySelector('[data-chips]');
-    var empty = form.querySelector('[data-chips-empty]');
     var defaultLabel = opts.buttonText || 'Submit Profile';
     var selection = [];
     label.textContent = defaultLabel;
 
+    // ---- shortlisted universities: one dropdown field (see the shortlist, remove, or search to add) ----
+    var uniIn = form.querySelector('[data-uni]'), uBtn = form.querySelector('[data-uni-btn]'), uVal = form.querySelector('[data-uni-val]'), uN = form.querySelector('[data-uni-n]');
+    var PH = 'Universities (optional)';
+    var NAMES_U = (window.TC_UNIVERSITIES || []).map(function (u) { return u.name; });
+    var uPop = document.createElement('div'); uPop.className = 'tcs__pop unis__pop'; uPop.hidden = true; uPop.setAttribute('data-lenis-prevent', '');
+    uPop.setAttribute('role', 'dialog'); uPop.setAttribute('aria-label', 'Shortlisted universities');
+    uPop.innerHTML = '<div class="unis__head"><span>Your shortlist</span><button type="button" class="unis__clear" data-u-clear>Clear all</button></div>' +
+      '<ul class="unis__list" data-u-list></ul><p class="unis__empty" data-u-empty>No universities yet. Search below to add one.</p>' +
+      '<div class="tcs__search unis__search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="text" placeholder="Add a university…" aria-label="Search universities to add" autocomplete="off" spellcheck="false" data-u-q></div>' +
+      '<ul class="unis__sug" data-u-sug aria-label="Matching universities"></ul>';
+    document.body.appendChild(uPop);
+    var uList = uPop.querySelector('[data-u-list]'), uEmpty = uPop.querySelector('[data-u-empty]'), uQ = uPop.querySelector('[data-u-q]'), uSug = uPop.querySelector('[data-u-sug]'), uClr = uPop.querySelector('[data-u-clear]');
+    function changed() { sync(); if (opts.onSelectionChange) opts.onSelectionChange(selection.slice()); }
     function renderChips() {
-      chips.querySelectorAll('.chipx').forEach(function (c) { c.remove(); });
-      empty.hidden = selection.length > 0;
-      selection.forEach(function (name) {
-        var b = document.createElement('span');
-        b.className = 'chipx';
-        b.innerHTML = esc(name) + '<button type="button" aria-label="Remove ' + esc(name) + '"><svg class="ico"><use href="#i-close"/></svg></button>';
-        b.querySelector('button').addEventListener('click', function () {
-          selection = selection.filter(function (n) { return n !== name; });
-          sync(); if (opts.onSelectionChange) opts.onSelectionChange(selection.slice());
-        });
-        chips.appendChild(b);
+      if (!uBtn) return;
+      var n = selection.length;
+      uVal.textContent = n ? selection[0] : PH;
+      uBtn.classList.toggle('is-empty', !n);
+      uN.hidden = n < 2; uN.textContent = '+' + (n - 1);
+      uList.innerHTML = selection.map(function (name, i) { return '<li><span class="unis__dot" aria-hidden="true"></span><span class="unis__name">' + esc(name) + '</span><button type="button" data-u-rm="' + i + '" aria-label="Remove ' + esc(name) + '"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m6 6 8 8M14 6l-8 8"/></svg></button></li>'; }).join('');
+      uList.hidden = !n; uEmpty.hidden = n > 0; uClr.hidden = n < 2;
+      if (!uPop.hidden) suggest();
+    }
+    function suggest() {
+      var q = uQ.value.trim().toLowerCase();
+      if (!q) { uSug.innerHTML = ''; return; }
+      var res = NAMES_U.filter(function (nm) { return selection.indexOf(nm) < 0 && nm.toLowerCase().indexOf(q) > -1; }).slice(0, 6);
+      uSug.innerHTML = res.length ? res.map(function (nm) { return '<li><button type="button" data-u-add="' + esc(nm) + '"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 5v10M5 10h10"/></svg><span>' + esc(nm) + '</span></button></li>'; }).join('')
+        : '<li class="unis__none">No match. Press Enter to add “' + esc(uQ.value.trim()) + '”.</li>';
+    }
+    function placeU() {
+      var host = uBtn.getBoundingClientRect(), w = Math.max(host.width, 300), below = innerHeight - host.bottom, up = below < 340 && host.top > below;
+      uPop.classList.toggle('is-up', up); uPop.style.width = w + 'px'; uPop.style.maxWidth = 'calc(100vw - 16px)';
+      uPop.style.left = Math.min(Math.max(8, host.left), innerWidth - w - 8) + 'px';
+      if (up) { uPop.style.top = 'auto'; uPop.style.bottom = (innerHeight - host.top + 8) + 'px'; } else { uPop.style.bottom = 'auto'; uPop.style.top = (host.bottom + 8) + 'px'; }
+    }
+    function openU() {
+      // inside a modal <dialog> the list must live in the dialog (top layer), otherwise it opens behind it
+      var host = uBtn.closest('dialog[open]') || document.body; if (uPop.parentNode !== host) host.appendChild(uPop);
+      uPop.hidden = false; uQ.value = ''; renderChips(); suggest(); placeU();
+      requestAnimationFrame(function () { uPop.classList.add('is-open'); });
+      uBtn.setAttribute('aria-expanded', 'true'); uBtn.classList.add('is-open');
+      try { uQ.focus({ preventScroll: true }); } catch (e) {}
+    }
+    function closeU(refocus) {
+      if (uPop.hidden) return;
+      uPop.classList.remove('is-open'); uPop.hidden = true; uBtn.setAttribute('aria-expanded', 'false'); uBtn.classList.remove('is-open');
+      if (refocus) try { uBtn.focus({ preventScroll: true }); } catch (e) {}
+    }
+    if (uBtn) {
+      uBtn.addEventListener('click', function () { if (uPop.hidden) openU(); else closeU(true); });
+      uBtn.addEventListener('keydown', function (e) { if (e.key === 'ArrowDown') { e.preventDefault(); openU(); } });
+      uPop.addEventListener('mousedown', function (e) { if (e.target !== uQ) e.preventDefault(); });
+      uPop.addEventListener('click', function (e) {
+        var rm = e.target.closest('[data-u-rm]'), add = e.target.closest('[data-u-add]');
+        if (rm) { selection.splice(+rm.getAttribute('data-u-rm'), 1); changed(); placeU(); try { uQ.focus({ preventScroll: true }); } catch (er) {} }
+        else if (add) { selection.push(add.getAttribute('data-u-add')); uQ.value = ''; changed(); placeU(); try { uQ.focus({ preventScroll: true }); } catch (er) {} }
+        else if (e.target.closest('[data-u-clear]')) { selection = []; changed(); placeU(); }
       });
-      if (selection.length > 1) {
-        var clr = document.createElement('button'); clr.type = 'button'; clr.className = 'chipx chipx--clear'; clr.textContent = 'Clear';
-        clr.addEventListener('click', function () { selection = []; sync(); if (opts.onSelectionChange) opts.onSelectionChange([]); });
-        chips.appendChild(clr);
-      }
+      uQ.addEventListener('input', suggest);
+      uQ.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeU(true); }
+        else if (e.key === 'Enter') {
+          e.preventDefault();
+          var first = uSug.querySelector('[data-u-add]'), v = uQ.value.trim();
+          if (first) first.click(); else if (v && selection.indexOf(v) < 0) { selection.push(v.slice(0, 120)); uQ.value = ''; changed(); placeU(); }
+        }
+        else if (e.key === 'ArrowDown') { var f = uSug.querySelector('button'); if (f) { e.preventDefault(); f.focus(); } }
+        else if (e.key === 'Tab' && !e.shiftKey && !uSug.querySelector('button')) closeU(false);
+      });
+      uSug.addEventListener('keydown', function (e) {
+        var bs = [].slice.call(uSug.querySelectorAll('button')), k = bs.indexOf(document.activeElement);
+        if (e.key === 'ArrowDown' && k < bs.length - 1) { e.preventDefault(); bs[k + 1].focus(); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); if (k > 0) bs[k - 1].focus(); else uQ.focus(); }
+        else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeU(true); }
+      });
+      document.addEventListener('pointerdown', function (e) { if (!uPop.hidden && !uPop.contains(e.target) && !uBtn.contains(e.target)) closeU(false); });
+      window.addEventListener('resize', function () { closeU(false); });
+      window.addEventListener('scroll', function () { if (!uPop.hidden) { var r = uBtn.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) closeU(false); else placeU(); } }, { passive: true });
     }
     function sync() {
       dest.value = selection.length ? selection.join(', ') : 'General US Inquiry';
+      if (uniIn) uniIn.value = selection.join(', ');
       renderChips();
       if (opts.dynamicButton) label.textContent = selection.length ? 'Apply to ' + selection.length + ' ' + (selection.length === 1 ? 'University' : 'Universities') : defaultLabel;
     }
@@ -232,6 +319,19 @@
     // ---- inline validation: checked when you leave a field, cleared as soon as it is fixed ----
     var cc = form.querySelector('select[name="country_code"]');
     if (window.TCSelect) window.TCSelect.enhance(cc, { search: true, placeholder: 'Search country or code', cls: 'tcs--cc' });
+    var SELS = ['state', 'course', 'call_time'];
+    SELS.forEach(function (n) {
+      var el = form.elements[n]; if (!el) return;
+      if (window.TCSelect) window.TCSelect.enhance(el, n === 'state' ? { search: true, placeholder: 'Search state' } : {});
+      el.addEventListener('change', function () { checkSel(el); });
+    });
+    function checkSel(el) {
+      var box = el.closest('.field'), bad = !el.value, err = box.querySelector('.field__err');
+      box.classList.toggle('is-bad', bad); el.setAttribute('aria-invalid', String(bad));
+      var face = box.querySelector('.tcs, .field__box'); if (face) { face.classList.toggle('is-bad', bad); face.classList.toggle('is-good', !bad); }
+      if (err) { err.textContent = bad ? 'Please choose one.' : ''; err.classList.toggle('is-on', bad); }
+      return !bad;
+    }
     var PHONE = {
       '+91': [10, 10, /^[6-9]/, 'Indian mobile numbers have 10 digits and start with 6, 7, 8 or 9.'],
       '+1': [10, 10, /^[2-9]/, 'US and Canada numbers have 10 digits.'],
@@ -312,21 +412,50 @@
       status.hidden = true;
       var first = null;
       ['name', 'phone_number', 'email'].forEach(function (n) { var inp = form.elements[n]; inp.__touched = true; inp.__submitted = true; if (!validate(inp) && !first) first = inp; });
-      if (first) { first.focus(); return; }
+      SELS.forEach(function (n) { var el = form.elements[n]; if (el && !checkSel(el) && !first) first = el; });
+      if (first) { var tb = first.tagName === 'SELECT' && first.__tc ? first.__tc.button : first; try { tb.focus(); } catch (e2) {} return; }
       var data = Object.fromEntries(new FormData(form).entries());
       data.email = String(data.email).trim();
       data.phone_number = String(data.phone_number).replace(/\D/g, '');
       if (data.country_code === '+91' && data.phone_number.length === 11) data.phone_number = data.phone_number.slice(1);
       data.phone = data.country_code + ' ' + data.phone_number;
       delete data.country_code; delete data.phone_number;
+      // the shortlisted university: what the student typed, else what they picked on the map
+      data.university = String(data.university || '').trim() || (selection.length ? selection.join(', ') : '');
+      data.destination = data.university || 'General US Inquiry';
+      // answers from the eligibility check (if the visitor took it) travel with the enquiry
+      var extraTxt = Object.keys(extra).map(function (k) { return k + ': ' + extra[k]; }).join(' · ');
+      Object.keys(extra).forEach(function (k) { data[k] = extra[k]; });
+      var now = new Date();
+      var lead = {
+        channel: 'web', botcheck: data.botcheck ? '1' : '',
+        lead_source: LEAD_SOURCE, country: 'USA', form: opts.formName || form.getAttribute('aria-label') || 'Free counselling form',
+        name: String(data.name || '').trim(), phone: data.phone, email: data.email, state: data.state || '',
+        university: data.university, course: data.course || '', call_time: data.call_time || '',
+        notes: extraTxt, submitted_at: now.toISOString(), client_time: now.toString(), page: location.href.split('#')[0]
+      };
+      // Web3Forms email gets the same details in readable form
+      data.subject = 'New lead – ' + LEAD_SOURCE + ': ' + lead.name;
+      data['Lead source'] = LEAD_SOURCE; data.State = lead.state; data['Shortlisted university'] = lead.university || '-';
+      data.Course = lead.course; data['Preferred call time'] = lead.call_time; data['Submitted at'] = now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) + ' IST';
+      delete data.state; delete data.university; delete data.course; delete data.call_time;
       btn.disabled = true; label.textContent = 'Evaluating Profile…'; form.classList.add('is-busy');
       try {
-        var res = await fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(data) });
-        var json = await res.json();
+        var sheetOk = false;
+        if (LEADS_URL) {
+          // Google Sheet + email to business@ (text/plain keeps it a simple request; Apps Script replies cross-origin)
+          try { await fetch(LEADS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(lead) }); sheetOk = true; }
+          catch (e3) { console.error('Lead sheet error:', e3); }
+        }
+        var json = { success: sheetOk };
+        if (!sheetOk) { // no sheet configured, or it failed: Web3Forms delivers the email
+          var res = await fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(data) });
+          json = await res.json();
+        }
         if (json.success) {
           show('success', 'Profile submitted successfully! We will contact you soon.');
           label.textContent = 'Submitted!';
-          form.reset(); clearMarks(); selection = []; sync(); label.textContent = 'Submitted!';
+          form.reset(); clearMarks(); SELS.forEach(function (n) { var el = form.elements[n]; if (!el) return; var b = el.closest('.field'); b.classList.remove('is-bad'); var f = b.querySelector('.tcs, .field__box'); if (f) f.classList.remove('is-bad', 'is-good'); }); selection = []; sync(); label.textContent = 'Submitted!';
           form.classList.add('is-done');
           setTimeout(function () { btn.disabled = false; form.classList.remove('is-done'); status.hidden = true; sync(); label.textContent = opts.dynamicButton && selection.length ? label.textContent : defaultLabel; }, 5000);
           if (opts.onSuccess) opts.onSuccess();
@@ -352,6 +481,8 @@
 
     return {
       setSelection: function (list) { selection = list.slice(); sync(); },
+      setExtra: function (o) { extra = o || {}; },
+      setValue: function (name, v) { var el = form.elements[name]; if (el) { el.value = v; el.dispatchEvent(new Event('change', { bubbles: true })); } },
       getSelection: function () { return selection.slice(); }
     };
   }
