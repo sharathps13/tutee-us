@@ -150,9 +150,11 @@
 
   var ACCESS_KEY = 'c3d875cf-0480-4d8e-a7be-2fb2c1268a0d';
   var ENDPOINT = 'https://api.web3forms.com/submit';
-  /* Google Sheet + email to business@tuteeconnect.com (google-apps-script/Code.gs, deployed as a Web app).
-     Paste the Web app URL here (or set window.TC_LEADS_URL before this script). While it is empty, leads go by Web3Forms only. */
-  var LEADS_URL = window.TC_LEADS_URL || '';
+  /* Google Sheet + email to business@tuteeconnect.com: the form posts to the site's own /api/enquiry function
+     (netlify/functions/enquiry.mjs), which adds the secret token and forwards the lead to the Apps Script
+     (google-apps-script/Code.gs). The Apps Script URL and token never reach the browser. Opened as a local file
+     (no server), or if the function fails, the enquiry goes by Web3Forms email instead. */
+  var LEADS_URL = window.TC_LEADS_URL || (/^https?:$/.test(location.protocol) ? '/api/enquiry' : '');
   var LEAD_SOURCE = 'USA landing page';
   var STATES = ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala',
     'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
@@ -432,7 +434,9 @@
         lead_source: LEAD_SOURCE, country: 'USA', form: opts.formName || form.getAttribute('aria-label') || 'Free counselling form',
         name: String(data.name || '').trim(), phone: data.phone, email: data.email, state: data.state || '',
         university: data.university, course: data.course || '', call_time: data.call_time || '',
-        notes: extraTxt, submitted_at: now.toISOString(), client_time: now.toString(), page: location.href.split('#')[0]
+        notes: extraTxt, submitted_at: now.toISOString(), client_time: now.toString(), page: location.href.split('#')[0],
+        // field names the Apps Script reads
+        shortlist: data.university || '', destination: data.university ? 'USA – ' + data.university : 'USA – general enquiry', message: extraTxt
       };
       // Web3Forms email gets the same details in readable form
       data.subject = 'New lead – ' + LEAD_SOURCE + ': ' + lead.name;
@@ -443,9 +447,13 @@
       try {
         var sheetOk = false;
         if (LEADS_URL) {
-          // Google Sheet + email to business@ (text/plain keeps it a simple request; Apps Script replies cross-origin)
-          try { await fetch(LEADS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(lead) }); sheetOk = true; }
-          catch (e3) { console.error('Lead sheet error:', e3); }
+          // Google Sheet + email to business@ via the site's own function (same origin, so the reply can be read)
+          try {
+            var lr = await fetch(LEADS_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(lead) });
+            var lj = await lr.json().catch(function () { return {}; });
+            sheetOk = !!(lr.ok && lj && lj.success);
+            if (!sheetOk) console.error('Lead sheet error:', lj && lj.message);
+          } catch (e3) { console.error('Lead sheet error:', e3); }
         }
         var json = { success: sheetOk };
         if (!sheetOk) { // no sheet configured, or it failed: Web3Forms delivers the email

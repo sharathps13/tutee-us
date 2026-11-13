@@ -1,9 +1,14 @@
 # Tutee Connect — Study in the USA
 # Plain static site: no build step on Netlify. (The WebGL hero bundle assets/js/hero.js
 # is pre-built from src/hero/ — see README.md if you change the 3D scene.)
+# One serverless function, netlify/functions/enquiry.mjs (/api/enquiry), forwards the lead form to the
+# Google Sheet. Set APPS_SCRIPT_URL and APPS_SCRIPT_TOKEN in the site's environment variables.
 
 [build]
   publish = "."
+
+[functions]
+  directory = "netlify/functions"
 
 # Old SPA hash links (pageus.netlify.app/#/universities) are handled in index.html.
 [[redirects]]
@@ -17,7 +22,7 @@
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://thumb.wikimedia.org https://upload.wikimedia.org; font-src 'self'; connect-src 'self' https://api.web3forms.com https://script.google.com https://script.googleusercontent.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Content-Type-Options = "nosniff"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Permissions-Policy = "camera=(), microphone=(self), geolocation=()"
 
 [[headers]]
   for = "/assets/*"
