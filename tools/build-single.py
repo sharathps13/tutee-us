@@ -33,7 +33,7 @@ js = lambda n: (root / 'assets/js' / n).read_text(encoding='utf-8')
 html = index
 html = re.sub(r'\s*<link rel="preload"[^>]*>', '', html)
 html = re.sub(r'\s*srcset="[^"]*"\s*sizes="[^"]*"', '', html)
-html = html.replace('<link rel="stylesheet" href="assets/css/site.css">', '<style>\n' + inline_assets(css) + '\n</style>')
+html = re.sub(r'<link rel="stylesheet" href="assets/css/site\.css(?:\?v=[^"]*)?">', lambda m: '<style>\n' + inline_assets(css) + '\n</style>', html)
 html = re.sub(r'\s*<script defer src="[^"]+"></script>', '', html)
 html = html.replace('<script type="module" src="assets/js/hero.js"></script>', '')
 

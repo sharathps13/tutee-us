@@ -10,6 +10,13 @@
 [functions]
   directory = "netlify/functions"
 
+# lead form → Google Sheet: /api/enquiry runs netlify/functions/enquiry.mjs
+[[redirects]]
+  from = "/api/enquiry"
+  to = "/.netlify/functions/enquiry"
+  status = 200
+  force = true
+
 # Old SPA hash links (pageus.netlify.app/#/universities) are handled in index.html.
 [[redirects]]
   from = "/universities"
@@ -28,3 +35,15 @@
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=604800"
+
+# scripts and styles are always checked for a newer copy (a quick 304 when unchanged), so a fix reaches
+# visitors on the next page load instead of up to a week later
+[[headers]]
+  for = "/assets/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/assets/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
