@@ -8,13 +8,6 @@
 [functions]
   directory = "netlify/functions"
 
-# lead form → Google Sheet: /api/enquiry runs netlify/functions/enquiry.mjs
-[[redirects]]
-  from = "/api/enquiry"
-  to = "/.netlify/functions/enquiry"
-  status = 200
-  force = true
-
 # Old SPA hash links (pageus.netlify.app/#/universities) are handled in index.html.
 [[redirects]]
   from = "/universities"

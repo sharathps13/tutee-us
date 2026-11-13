@@ -45,4 +45,4 @@ export default async (req) => {
   }
 };
 
-// reached at /api/enquiry through the redirect in netlify.toml (and directly at /.netlify/functions/enquiry)
+export const config = { path: '/api/enquiry' };
