@@ -2539,7 +2539,12 @@ body:has(.final) .foot { border-top: 0; }
   .stamp--c { width: min(43%, calc(var(--ph) * .68)); left: 11%; top: 53%; }
   .pp__pagefoot { font-size: 10px; bottom: 8px; }
   .pp-hint { transform: translate(-50%, 160%); }
-  .motion-off .pp__cover { transform: rotateX(180deg); }
+  .motion-off .pp__cover { transform: scaleY(-1); }
+  .motion-off .pp__face--front { visibility: hidden; }
+  .pp-tilt, .pp, .pp__cover { transform-style: flat; will-change: auto; }
+  .pp::before { transform: none; }
+  .pp__face { -webkit-backface-visibility: visible; backface-visibility: visible; }
+  .pp__face--back { transform: scaleY(-1); }
   .hero__scroll { bottom: 10px; gap: 6px; right: 12px; }
   .hero__credit { display: none; }
   .why__pin { min-height: 0; height: auto; padding-bottom: 40px; }
@@ -2644,7 +2649,8 @@ body:has(.final) .foot { border-top: 0; }
 
 /* iOS Safari: stamps sit flat on a 3D page and get z-fought / dropped with the SVG filter; lift them and skip the filter on phones */
 @media (max-width: 760px) {
-  .stamp { will-change: auto; -webkit-transform: translateZ(2px); -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+  .stamp { will-change: auto; transform: rotate(var(--r)); }
+  .stamp.is-in { animation: stampIn .42s cubic-bezier(.6,0,.9,.4) both; }
   .stamp g[filter] { filter: none; }
 }
 /* visa pathway: equal columns, circles centred, line only from step 01 to step 04 */
@@ -2652,3 +2658,4 @@ body:has(.final) .foot { border-top: 0; }
 .visa__tabs button { justify-items: center; text-align: center; padding: 0 4px 6px; }
 .visa__tabs::before { left: 12.5%; right: 12.5%; top: 22px; }
 @media (max-width: 760px) { .visa__tabs { gap: 4px; } .visa__tabs::before { top: 19px; } .visa__tabs button { font-size: 12px; line-height: 1.25; } }
+@keyframes stampIn { 0% { opacity: 0; transform: rotate(calc(var(--r) + 14deg)) scale(2.4) translateY(-20px); } 80% { opacity: 1; transform: rotate(var(--r)) scale(.96); } 100% { opacity: 1; transform: rotate(var(--r)) scale(1); } }

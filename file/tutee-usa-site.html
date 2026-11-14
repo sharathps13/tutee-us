@@ -2554,7 +2554,12 @@ body:has(.final) .foot { border-top: 0; }
   .stamp--c { width: min(43%, calc(var(--ph) * .68)); left: 11%; top: 53%; }
   .pp__pagefoot { font-size: 10px; bottom: 8px; }
   .pp-hint { transform: translate(-50%, 160%); }
-  .motion-off .pp__cover { transform: rotateX(180deg); }
+  .motion-off .pp__cover { transform: scaleY(-1); }
+  .motion-off .pp__face--front { visibility: hidden; }
+  .pp-tilt, .pp, .pp__cover { transform-style: flat; will-change: auto; }
+  .pp::before { transform: none; }
+  .pp__face { -webkit-backface-visibility: visible; backface-visibility: visible; }
+  .pp__face--back { transform: scaleY(-1); }
   .hero__scroll { bottom: 10px; gap: 6px; right: 12px; }
   .hero__credit { display: none; }
   .why__pin { min-height: 0; height: auto; padding-bottom: 40px; }
@@ -2659,7 +2664,8 @@ body:has(.final) .foot { border-top: 0; }
 
 /* iOS Safari: stamps sit flat on a 3D page and get z-fought / dropped with the SVG filter; lift them and skip the filter on phones */
 @media (max-width: 760px) {
-  .stamp { will-change: auto; -webkit-transform: translateZ(2px); -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+  .stamp { will-change: auto; transform: rotate(var(--r)); }
+  .stamp.is-in { animation: stampIn .42s cubic-bezier(.6,0,.9,.4) both; }
   .stamp g[filter] { filter: none; }
 }
 /* visa pathway: equal columns, circles centred, line only from step 01 to step 04 */
@@ -2667,6 +2673,7 @@ body:has(.final) .foot { border-top: 0; }
 .visa__tabs button { justify-items: center; text-align: center; padding: 0 4px 6px; }
 .visa__tabs::before { left: 12.5%; right: 12.5%; top: 22px; }
 @media (max-width: 760px) { .visa__tabs { gap: 4px; } .visa__tabs::before { top: 19px; } .visa__tabs button { font-size: 12px; line-height: 1.25; } }
+@keyframes stampIn { 0% { opacity: 0; transform: rotate(calc(var(--r) + 14deg)) scale(2.4) translateY(-20px); } 80% { opacity: 1; transform: rotate(var(--r)) scale(.96); } 100% { opacity: 1; transform: rotate(var(--r)) scale(1); } }
 
 </style>
 <script>
@@ -5735,28 +5742,43 @@ window.TC_ALL = {cols:["id","name","city","st","web","control","level","size","c
     var pp = $('[data-pp]', scene), cover = $('[data-pp-cover]', scene), tilt = $('[data-pp-tilt]', scene), hint = $('[data-pp-hint]', scene);
     var stamps = $$('[data-pp-stamp]', scene), TH = [.6, .73, .86], done = stamps.map(function () { return false; });
     function rot(el) { return parseFloat(getComputedStyle(el).getPropertyValue('--r')) || 0; }
-    var upright = window.matchMedia('(max-width: 760px)'), lastP = 0;
+    var upright = window.matchMedia('(max-width: 760px)'), lastP = 0, fFront = $('.pp__face--front', scene), fBack = $('.pp__face--back', scene);
     function slam(i) {
       var el = stamps[i], r = rot(el);
+      if (upright.matches) { // phones (iOS Safari drops GSAP-transformed layers inside the 3D book): plain CSS class animation
+        gsap.killTweensOf(el); el.style.cssText = '';
+        el.classList.remove('is-in'); void el.offsetWidth; el.classList.add('is-in');
+        return;
+      }
       gsap.killTweensOf(el);
-      gsap.fromTo(el, { scale: 2.4, opacity: 0, rotation: r + (i % 2 ? -14 : 14), y: -30, z: 2 },
-        { scale: 1, opacity: 1, rotation: r, y: 0, z: 2, duration: .34, ease: 'power4.in', onComplete: function () {
+      gsap.fromTo(el, { scale: 2.4, opacity: 0, rotation: r + (i % 2 ? -14 : 14), y: -30 },
+        { scale: 1, opacity: 1, rotation: r, y: 0, duration: .34, ease: 'power4.in', onComplete: function () {
           el.classList.remove('is-burst'); void el.offsetWidth; el.classList.add('is-burst');
           gsap.fromTo(tilt, { y: 7 }, { y: 0, duration: .5, ease: 'elastic.out(1, .35)' });
           gsap.fromTo(el, { scale: .96 }, { scale: 1, duration: .3, ease: 'back.out(3)' });
         } });
     }
-    function lift(i) { gsap.killTweensOf(stamps[i]); gsap.to(stamps[i], { opacity: 0, scale: 1.3, duration: .2, ease: 'power2.out' }); }
+    function lift(i) { if (upright.matches) { stamps[i].classList.remove('is-in'); return; } gsap.killTweensOf(stamps[i]); gsap.to(stamps[i], { opacity: 0, scale: 1.3, duration: .2, ease: 'power2.out' }); }
     function set(p) {
       lastP = p;
       var rise = Math.min(1, p / .25), open = Math.max(0, Math.min(1, (p - .25) / .25));
       var er = 1 - Math.pow(1 - rise, 3), eo = open < .5 ? 2 * open * open : 1 - Math.pow(-2 * open + 2, 2) / 2;
       if (upright.matches) { // phones: the book opens top-to-bottom, the cover swings up on its top edge
-        gsap.set(pp, { y: (1 - er) * 120, rotationX: 22 - er * 14 - eo * 4, xPercent: 0, yPercent: -25 + eo * 25, opacity: Math.min(1, rise * 2) });
-        gsap.set(cover, { rotationY: 0, rotationX: 180 * eo });
+        // flat 2D fold (no 3D context): iOS Safari was dropping the right page's contents inside the 3D book
+        gsap.set(pp, { y: (1 - er) * 120, rotationX: 0, xPercent: 0, yPercent: -25 + eo * 25, opacity: Math.min(1, rise * 2) });
+        gsap.set(cover, { rotationY: 0, rotationX: 0, scaleY: 1 - 2 * eo });
+        if (fFront) fFront.style.visibility = eo < .5 ? 'visible' : 'hidden';
+        if (fBack) fBack.style.visibility = eo < .5 ? 'hidden' : 'visible';
       } else {
         gsap.set(pp, { y: (1 - er) * 160, rotationX: 36 - er * 22 - eo * 4, xPercent: -25 + eo * 25, yPercent: 0, opacity: Math.min(1, rise * 2) });
-        gsap.set(cover, { rotationX: 0, rotationY: -180 * eo });
+        gsap.set(cover, { rotationX: 0, scaleY: 1, rotationY: -180 * eo });
+        if (fFront) fFront.style.visibility = ''; if (fBack) fBack.style.visibility = '';
+      }
+      if (upright.matches) {
+        if (eo >= .98 && !done[0]) stamps.forEach(function (el, i) { done[i] = true; setTimeout(function () { slam(i); }, 150 + i * 320); });
+        else if (eo < .5 && done[0]) stamps.forEach(function (el, i) { done[i] = false; lift(i); });
+        if (hint) hint.classList.toggle('is-on', done[0]);
+        return;
       }
       TH.forEach(function (t, i) {
         if (p >= t && !done[i]) { done[i] = true; slam(i); }

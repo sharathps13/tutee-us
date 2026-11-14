@@ -1168,28 +1168,43 @@
     var pp = $('[data-pp]', scene), cover = $('[data-pp-cover]', scene), tilt = $('[data-pp-tilt]', scene), hint = $('[data-pp-hint]', scene);
     var stamps = $$('[data-pp-stamp]', scene), TH = [.6, .73, .86], done = stamps.map(function () { return false; });
     function rot(el) { return parseFloat(getComputedStyle(el).getPropertyValue('--r')) || 0; }
-    var upright = window.matchMedia('(max-width: 760px)'), lastP = 0;
+    var upright = window.matchMedia('(max-width: 760px)'), lastP = 0, fFront = $('.pp__face--front', scene), fBack = $('.pp__face--back', scene);
     function slam(i) {
       var el = stamps[i], r = rot(el);
+      if (upright.matches) { // phones (iOS Safari drops GSAP-transformed layers inside the 3D book): plain CSS class animation
+        gsap.killTweensOf(el); el.style.cssText = '';
+        el.classList.remove('is-in'); void el.offsetWidth; el.classList.add('is-in');
+        return;
+      }
       gsap.killTweensOf(el);
-      gsap.fromTo(el, { scale: 2.4, opacity: 0, rotation: r + (i % 2 ? -14 : 14), y: -30, z: 2 },
-        { scale: 1, opacity: 1, rotation: r, y: 0, z: 2, duration: .34, ease: 'power4.in', onComplete: function () {
+      gsap.fromTo(el, { scale: 2.4, opacity: 0, rotation: r + (i % 2 ? -14 : 14), y: -30 },
+        { scale: 1, opacity: 1, rotation: r, y: 0, duration: .34, ease: 'power4.in', onComplete: function () {
           el.classList.remove('is-burst'); void el.offsetWidth; el.classList.add('is-burst');
           gsap.fromTo(tilt, { y: 7 }, { y: 0, duration: .5, ease: 'elastic.out(1, .35)' });
           gsap.fromTo(el, { scale: .96 }, { scale: 1, duration: .3, ease: 'back.out(3)' });
         } });
     }
-    function lift(i) { gsap.killTweensOf(stamps[i]); gsap.to(stamps[i], { opacity: 0, scale: 1.3, duration: .2, ease: 'power2.out' }); }
+    function lift(i) { if (upright.matches) { stamps[i].classList.remove('is-in'); return; } gsap.killTweensOf(stamps[i]); gsap.to(stamps[i], { opacity: 0, scale: 1.3, duration: .2, ease: 'power2.out' }); }
     function set(p) {
       lastP = p;
       var rise = Math.min(1, p / .25), open = Math.max(0, Math.min(1, (p - .25) / .25));
       var er = 1 - Math.pow(1 - rise, 3), eo = open < .5 ? 2 * open * open : 1 - Math.pow(-2 * open + 2, 2) / 2;
       if (upright.matches) { // phones: the book opens top-to-bottom, the cover swings up on its top edge
-        gsap.set(pp, { y: (1 - er) * 120, rotationX: 22 - er * 14 - eo * 4, xPercent: 0, yPercent: -25 + eo * 25, opacity: Math.min(1, rise * 2) });
-        gsap.set(cover, { rotationY: 0, rotationX: 180 * eo });
+        // flat 2D fold (no 3D context): iOS Safari was dropping the right page's contents inside the 3D book
+        gsap.set(pp, { y: (1 - er) * 120, rotationX: 0, xPercent: 0, yPercent: -25 + eo * 25, opacity: Math.min(1, rise * 2) });
+        gsap.set(cover, { rotationY: 0, rotationX: 0, scaleY: 1 - 2 * eo });
+        if (fFront) fFront.style.visibility = eo < .5 ? 'visible' : 'hidden';
+        if (fBack) fBack.style.visibility = eo < .5 ? 'hidden' : 'visible';
       } else {
         gsap.set(pp, { y: (1 - er) * 160, rotationX: 36 - er * 22 - eo * 4, xPercent: -25 + eo * 25, yPercent: 0, opacity: Math.min(1, rise * 2) });
-        gsap.set(cover, { rotationX: 0, rotationY: -180 * eo });
+        gsap.set(cover, { rotationX: 0, scaleY: 1, rotationY: -180 * eo });
+        if (fFront) fFront.style.visibility = ''; if (fBack) fBack.style.visibility = '';
+      }
+      if (upright.matches) {
+        if (eo >= .98 && !done[0]) stamps.forEach(function (el, i) { done[i] = true; setTimeout(function () { slam(i); }, 150 + i * 320); });
+        else if (eo < .5 && done[0]) stamps.forEach(function (el, i) { done[i] = false; lift(i); });
+        if (hint) hint.classList.toggle('is-on', done[0]);
+        return;
       }
       TH.forEach(function (t, i) {
         if (p >= t && !done[i]) { done[i] = true; slam(i); }
