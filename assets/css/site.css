@@ -2624,3 +2624,31 @@ body:has(.final) .foot { border-top: 0; }
   .cc__hint { font-size: 1.45cqw; gap: .8cqw; } .cc__hint .ico { width: 1.8cqw; height: 1.8cqw; }
   .cc__micro { font-size: .9cqw; }
 }
+
+/* phones, short screens (iPhone SE/mini, 360x640 Android): a tighter hero so the headline block sits below the
+   AMERICA word instead of on top of it — buttons side by side, slimmer proof row */
+@media (max-width: 760px) and (max-height: 800px) {
+  .hero__copy { gap: 10px; bottom: 82px; }
+  .hero__kicker { margin-bottom: 6px; font-size: 11.5px; }
+  .hero__title { font-size: clamp(1.75rem, 8.4vw, 2.2rem); }
+  .hero__side .proof { margin-bottom: 10px; }
+  .hero__side .proof b { font-size: 1.3rem; }
+  .hero__side .proof span { font-size: 8.5px; }
+  .hero__lede { font-size: 13.5px; line-height: 1.5; }
+  .hero__ctas { display: flex; flex-wrap: nowrap; gap: 8px; margin-top: 12px; }
+  .hero__ctas .btn { --h: 44px; flex: 1 1 0; min-width: 0; padding: 0 12px; font-size: 13px; justify-content: center; }
+  .hero__ctas .btn .btn__spark { display: none; }
+}
+/* the AMERICA word never sits behind the copy, even on the very smallest screens */
+[data-hero-word].is-tight { opacity: .55; }
+
+/* iOS Safari: stamps sit flat on a 3D page and get z-fought / dropped with the SVG filter; lift them and skip the filter on phones */
+@media (max-width: 760px) {
+  .stamp { will-change: auto; -webkit-transform: translateZ(2px); -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+  .stamp g[filter] { filter: none; }
+}
+/* visa pathway: equal columns, circles centred, line only from step 01 to step 04 */
+.visa__tabs { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+.visa__tabs button { justify-items: center; text-align: center; padding: 0 4px 6px; }
+.visa__tabs::before { left: 12.5%; right: 12.5%; top: 22px; }
+@media (max-width: 760px) { .visa__tabs { gap: 4px; } .visa__tabs::before { top: 19px; } .visa__tabs button { font-size: 12px; line-height: 1.25; } }

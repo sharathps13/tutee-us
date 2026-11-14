@@ -1144,7 +1144,16 @@
       var imgH = Math.max(vh, vw / ASPECT), top = (vh - imgH) * py;
       var w = Math.min(vw * (vw < 700 ? .94 : .9), imgH * .27 * RATIO);
       word.style.setProperty('--word-w', w.toFixed(1) + 'px');
-      word.style.setProperty('--word-y', (top + imgH * (vw / vh < .9 ? .265 : .43)).toFixed(1) + 'px');
+      var wy = top + imgH * (vw / vh < .9 ? .265 : .43);
+      // phones: the word must clear the headline block below it (short screens push the copy up into it)
+      var copy = $('.hero__copy', stage.parentNode) || $('.hero__copy');
+      if (copy && vw < 761) {
+        var cTop = copy.getBoundingClientRect().top - stage.getBoundingClientRect().top, half = w / RATIO * .62;
+        var minY = 86 + half; // under the header bar
+        if (wy + half > cTop - 10) wy = Math.max(minY, cTop - 10 - half);
+        word.classList.toggle('is-tight', wy + half > cTop - 10);
+      }
+      word.style.setProperty('--word-y', wy.toFixed(1) + 'px');
       word.style.setProperty('--hw-stroke', (vw < 700 ? 1.4 : w > 1400 ? 2.4 : 2) + 'px');
     }
     fit();
@@ -1163,8 +1172,8 @@
     function slam(i) {
       var el = stamps[i], r = rot(el);
       gsap.killTweensOf(el);
-      gsap.fromTo(el, { scale: 2.4, opacity: 0, rotation: r + (i % 2 ? -14 : 14), y: -30 },
-        { scale: 1, opacity: 1, rotation: r, y: 0, duration: .34, ease: 'power4.in', onComplete: function () {
+      gsap.fromTo(el, { scale: 2.4, opacity: 0, rotation: r + (i % 2 ? -14 : 14), y: -30, z: 2 },
+        { scale: 1, opacity: 1, rotation: r, y: 0, z: 2, duration: .34, ease: 'power4.in', onComplete: function () {
           el.classList.remove('is-burst'); void el.offsetWidth; el.classList.add('is-burst');
           gsap.fromTo(tilt, { y: 7 }, { y: 0, duration: .5, ease: 'elastic.out(1, .35)' });
           gsap.fromTo(el, { scale: .96 }, { scale: 1, duration: .3, ease: 'back.out(3)' });
@@ -1188,14 +1197,14 @@
       });
       if (hint) hint.classList.toggle('is-on', done[done.length - 1]);
     }
-    function again(i) { if (i > -1 && (done[i] || !motion)) slam(i); }
+    function again(i) { if (i > -1) { done[i] = true; slam(i); } }
     // The book is tilted in 3D, which makes browsers hit-test the page instead of the stamps on it,
     // so taps are matched against where each stamp is actually drawn on screen (topmost first).
     function stampAt(x, y) {
       for (var i = stamps.length - 1; i >= 0; i--) {
         var r = stamps[i].getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
         var dx = (x - cx) / (r.width * .46), dy = (y - cy) / (r.height * .46);
-        if (dx * dx + dy * dy <= 1 && getComputedStyle(stamps[i]).opacity > .5) return i;
+        if (dx * dx + dy * dy <= 1) return i;
       }
       return -1;
     }
