@@ -1393,3 +1393,25 @@
   }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(choreograph); else choreograph();
 })();
+
+/* Destinations (phones): swipe dots under the city chips, synced to the active city */
+(function () {
+  var nav = document.querySelector('.dx__tabs'); if (!nav) return;
+  var tabs = [].slice.call(nav.querySelectorAll('.dx__tab')); if (!tabs.length) return;
+  var dots = document.createElement('div'); dots.className = 'dx__dots'; dots.setAttribute('aria-hidden', 'true');
+  dots.innerHTML = tabs.map(function () { return '<i></i>'; }).join('');
+  nav.parentNode.insertBefore(dots, nav.nextSibling);
+  var ds = [].slice.call(dots.children);
+  ds.forEach(function (d, i) { d.addEventListener('click', function () { tabs[i].click(); }); });
+  var last = -1;
+  function sync() {
+    var a = tabs.findIndex(function (t) { return t.classList.contains('is-active'); }); if (a < 0) a = 0;
+    ds.forEach(function (d, i) { d.classList.toggle('is-on', i === a); });
+    if (a !== last && window.matchMedia('(max-width: 760px)').matches) {
+      var t = tabs[a]; nav.scrollTo({ left: t.offsetLeft - (nav.clientWidth - t.offsetWidth) / 2, behavior: last < 0 ? 'auto' : 'smooth' });
+    }
+    last = a;
+  }
+  new MutationObserver(sync).observe(nav, { subtree: true, attributes: true, attributeFilter: ['class'] });
+  sync();
+})();

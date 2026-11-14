@@ -2674,6 +2674,22 @@ body:has(.final) .foot { border-top: 0; }
 .visa__tabs::before { left: 12.5%; right: 12.5%; top: 22px; }
 @media (max-width: 760px) { .visa__tabs { gap: 4px; } .visa__tabs::before { top: 19px; } .visa__tabs button { font-size: 12px; line-height: 1.25; } }
 @keyframes stampIn { 0% { opacity: 0; transform: rotate(calc(var(--r) + 14deg)) scale(2.4) translateY(-20px); } 80% { opacity: 1; transform: rotate(var(--r)) scale(.96); } 100% { opacity: 1; transform: rotate(var(--r)) scale(1); } }
+/* phones (iOS): when the address bar collapses the viewport grows to 100lvh; the pinned destinations panel must fill it
+   (no strip of the next section showing) while its content keeps the small-viewport layout so nothing hides under the toolbar */
+@media (max-width: 760px) {
+  @supports (height: 100lvh) {
+    .dx__pin { height: 100lvh; }
+    .dx__ui { height: 100svh; }
+  }
+}
+.dx__dots { display: none; }
+@media (max-width: 760px) {
+  .dx__dots { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 12px; }
+  .dx__dots i { width: 6px; height: 6px; border-radius: 999px; background: rgba(247,242,232,.28); cursor: pointer; transition: width .35s cubic-bezier(.2,.8,.2,1), background .35s; }
+  .dx__dots i.is-on { width: 22px; background: var(--sunset); }
+  .dx__tabs { scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+  .dx__tab { scroll-snap-align: center; flex: none; }
+}
 
 </style>
 <script>
@@ -5966,6 +5982,28 @@ window.TC_ALL = {cols:["id","name","city","st","web","control","level","size","c
     }, 0);
   }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(choreograph); else choreograph();
+})();
+
+/* Destinations (phones): swipe dots under the city chips, synced to the active city */
+(function () {
+  var nav = document.querySelector('.dx__tabs'); if (!nav) return;
+  var tabs = [].slice.call(nav.querySelectorAll('.dx__tab')); if (!tabs.length) return;
+  var dots = document.createElement('div'); dots.className = 'dx__dots'; dots.setAttribute('aria-hidden', 'true');
+  dots.innerHTML = tabs.map(function () { return '<i></i>'; }).join('');
+  nav.parentNode.insertBefore(dots, nav.nextSibling);
+  var ds = [].slice.call(dots.children);
+  ds.forEach(function (d, i) { d.addEventListener('click', function () { tabs[i].click(); }); });
+  var last = -1;
+  function sync() {
+    var a = tabs.findIndex(function (t) { return t.classList.contains('is-active'); }); if (a < 0) a = 0;
+    ds.forEach(function (d, i) { d.classList.toggle('is-on', i === a); });
+    if (a !== last && window.matchMedia('(max-width: 760px)').matches) {
+      var t = tabs[a]; nav.scrollTo({ left: t.offsetLeft - (nav.clientWidth - t.offsetWidth) / 2, behavior: last < 0 ? 'auto' : 'smooth' });
+    }
+    last = a;
+  }
+  new MutationObserver(sync).observe(nav, { subtree: true, attributes: true, attributeFilter: ['class'] });
+  sync();
 })();
 
 </script>
