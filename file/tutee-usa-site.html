@@ -2690,6 +2690,20 @@ body:has(.final) .foot { border-top: 0; }
   .dx__tabs { scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
   .dx__tab { scroll-snap-align: center; flex: none; }
 }
+/* phones: hero copy sits on a soft dark scrim so the text no longer fights the statue and sky */
+@media (max-width: 760px) {
+  .hero__copy { isolation: isolate; }
+  .hero__copy::before { content: ''; position: absolute; z-index: -1; left: calc(var(--gutter) * -1 - 10px); right: calc(var(--gutter) * -1 - 10px); top: -48px; bottom: -120px; pointer-events: none;
+    background: linear-gradient(180deg, rgba(6,13,22,0) 0, rgba(6,13,22,.55) 28%, rgba(6,13,22,.82) 60%, rgba(6,13,22,.9) 100%); }
+  .hero__title, .hero__lede, .hero__kicker, .hero__side .proof { text-shadow: 0 1px 14px rgba(0,0,0,.45); }
+  .hero__scroll { transform: scale(.68); transform-origin: 50% 100%; padding: 0 6px; gap: 6px; }
+}
+/* smaller scroll cue everywhere */
+.hero__scroll .fp { height: 30px; width: 14px; }
+.hero__scroll .fp__plane { width: 14px; height: 14px; margin-left: -7px; }
+.hero__scroll .fp__txt { font-size: 9px; }
+/* Ask Tutee: the page keeps scrolling over the chat box */
+.ask__log { overscroll-behavior: auto; }
 
 </style>
 <script>
@@ -6004,6 +6018,18 @@ window.TC_ALL = {cols:["id","name","city","st","web","control","level","size","c
   }
   new MutationObserver(sync).observe(nav, { subtree: true, attributes: true, attributeFilter: ['class'] });
   sync();
+})();
+
+/* Ask Tutee log: only capture the wheel while the conversation actually overflows; otherwise the page scrolls straight through */
+(function () {
+  var log = document.querySelector('[data-ask-log]'); if (!log) return;
+  function upd() { if (log.scrollHeight > log.clientHeight + 4) log.setAttribute('data-lenis-prevent', ''); else log.removeAttribute('data-lenis-prevent'); }
+  upd(); new MutationObserver(upd).observe(log, { childList: true, subtree: true }); window.addEventListener('resize', upd);
+  log.addEventListener('wheel', function (e) { // at the top/bottom of the log, hand the wheel back to the page
+    if (!log.hasAttribute('data-lenis-prevent')) return;
+    var atTop = log.scrollTop <= 0 && e.deltaY < 0, atEnd = log.scrollTop + log.clientHeight >= log.scrollHeight - 1 && e.deltaY > 0;
+    if ((atTop || atEnd) && window.TCLenis) { e.preventDefault(); window.TCLenis.scrollTo(window.scrollY + e.deltaY, { immediate: false }); }
+  }, { passive: false });
 })();
 
 </script>

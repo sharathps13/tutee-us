@@ -2675,3 +2675,17 @@ body:has(.final) .foot { border-top: 0; }
   .dx__tabs { scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
   .dx__tab { scroll-snap-align: center; flex: none; }
 }
+/* phones: hero copy sits on a soft dark scrim so the text no longer fights the statue and sky */
+@media (max-width: 760px) {
+  .hero__copy { isolation: isolate; }
+  .hero__copy::before { content: ''; position: absolute; z-index: -1; left: calc(var(--gutter) * -1 - 10px); right: calc(var(--gutter) * -1 - 10px); top: -48px; bottom: -120px; pointer-events: none;
+    background: linear-gradient(180deg, rgba(6,13,22,0) 0, rgba(6,13,22,.55) 28%, rgba(6,13,22,.82) 60%, rgba(6,13,22,.9) 100%); }
+  .hero__title, .hero__lede, .hero__kicker, .hero__side .proof { text-shadow: 0 1px 14px rgba(0,0,0,.45); }
+  .hero__scroll { transform: scale(.68); transform-origin: 50% 100%; padding: 0 6px; gap: 6px; }
+}
+/* smaller scroll cue everywhere */
+.hero__scroll .fp { height: 30px; width: 14px; }
+.hero__scroll .fp__plane { width: 14px; height: 14px; margin-left: -7px; }
+.hero__scroll .fp__txt { font-size: 9px; }
+/* Ask Tutee: the page keeps scrolling over the chat box */
+.ask__log { overscroll-behavior: auto; }

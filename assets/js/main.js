@@ -1415,3 +1415,15 @@
   new MutationObserver(sync).observe(nav, { subtree: true, attributes: true, attributeFilter: ['class'] });
   sync();
 })();
+
+/* Ask Tutee log: only capture the wheel while the conversation actually overflows; otherwise the page scrolls straight through */
+(function () {
+  var log = document.querySelector('[data-ask-log]'); if (!log) return;
+  function upd() { if (log.scrollHeight > log.clientHeight + 4) log.setAttribute('data-lenis-prevent', ''); else log.removeAttribute('data-lenis-prevent'); }
+  upd(); new MutationObserver(upd).observe(log, { childList: true, subtree: true }); window.addEventListener('resize', upd);
+  log.addEventListener('wheel', function (e) { // at the top/bottom of the log, hand the wheel back to the page
+    if (!log.hasAttribute('data-lenis-prevent')) return;
+    var atTop = log.scrollTop <= 0 && e.deltaY < 0, atEnd = log.scrollTop + log.clientHeight >= log.scrollHeight - 1 && e.deltaY > 0;
+    if ((atTop || atEnd) && window.TCLenis) { e.preventDefault(); window.TCLenis.scrollTo(window.scrollY + e.deltaY, { immediate: false }); }
+  }, { passive: false });
+})();
