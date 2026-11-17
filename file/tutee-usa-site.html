@@ -2727,10 +2727,21 @@ body:has(.final) .foot { border-top: 0; }
   // Old hash-route links (pageus.netlify.app/#/universities) keep working.
   document.documentElement.classList.add('js');
 </script>
-<script>/* phones: the on-screen keyboard resizes the viewport; while a field is focused, don't let that resize re-measure the page (it was jumping the scroll) */
-(function(){var w=innerWidth;function typing(){var a=document.activeElement;return a&&(/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)||a.isContentEditable);}
-addEventListener('resize',function(e){if(innerWidth===w&&typing()){e.stopImmediatePropagation();}w=innerWidth;},true);
-if(window.visualViewport)visualViewport.addEventListener('resize',function(e){if(typing())e.stopImmediatePropagation();},true);})();</script>
+<script>/* phones: keyboard-safe typing (same guard as the UAE page). While a field is focused, or the keyboard is closing,
+   the page ignores keyboard resizes, blocks scripted scrolling, and freezes section heights so nothing jumps. */
+!function(){var W=innerWidth,add=window.addEventListener.bind(window);
+function typing(){var t=document.activeElement;return t&&/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)}
+window.addEventListener=function(type,fn,o){if(type==='resize'&&typeof fn==='function'){var f=fn;fn=function(e){var w=innerWidth;if(w!==W||!typing()&&!window.__kbClosing){W=w;return f.call(this,e)}}}return add(type,fn,o)};
+document.addEventListener('focusout',function(){window.__kbClosing=true;setTimeout(function(){window.__kbClosing=false},700)});
+var touch=matchMedia('(hover: none), (pointer: coarse)').matches;function hold(){return touch&&(typing()||window.__kbClosing)}
+var RO=window.ResizeObserver;if(RO)window.ResizeObserver=function(cb){return new RO(function(e,o){hold()||cb(e,o)})};
+var sT=window.scrollTo.bind(window),sB=window.scrollBy.bind(window),sI=Element.prototype.scrollIntoView;window.__rawScrollTo=sT;
+window.scrollTo=function(){if(!hold())return sT.apply(window,arguments)};window.scrollBy=function(){if(!hold())return sB.apply(window,arguments)};
+Element.prototype.scrollIntoView=function(){if(!hold())return sI.apply(this,arguments)};
+if(touch){document.documentElement.classList.add('is-touch');var frozen=[],t=0;
+document.addEventListener('focusin',function(e){if(!/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))return;clearTimeout(t);
+if(!frozen.length)document.querySelectorAll('main > *, .hero__stage, footer').forEach(function(el){var h=el.getBoundingClientRect().height;if(h){frozen.push([el,el.style.height,el.style.minHeight,el.style.maxHeight]);el.style.height=el.style.minHeight=el.style.maxHeight=h+'px'}})});
+document.addEventListener('focusout',function(){clearTimeout(t);t=setTimeout(function(){if(!typing()){frozen.forEach(function(f){f[0].style.height=f[1];f[0].style.minHeight=f[2];f[0].style.maxHeight=f[3]});frozen=[]}},900)})}}();</script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -5738,25 +5749,6 @@ window.TC_ALL = {cols:["id","name","city","st","web","control","level","size","c
     (function () { var full = input.getAttribute('placeholder'), mq = matchMedia('(max-width: 640px)');
       function fit() { input.setAttribute('placeholder', mq.matches ? 'Ask anything…' : full); }
       fit(); if (mq.addEventListener) mq.addEventListener('change', fit); })();
-    // phones: while typing, the chat window is sized to the space above the keyboard and kept in view, so the browser
-    // has no reason to scroll the page (it was jumping down on tap, then back up on every keystroke)
-    (function () {
-      var win = $('.ask__win', root), vv = window.visualViewport, t = 0; if (!win) return;
-      function typing() { return mqMobile.matches && document.activeElement === input; }
-      function fit() {
-        if (!typing()) return;
-        var h = vv ? vv.height : innerHeight, top = vv ? vv.offsetTop : 0;
-        win.style.height = Math.round(Math.max(280, Math.min(620, h - 16))) + 'px';
-        var r = win.getBoundingClientRect(), want = top + 8;
-        if (Math.abs(r.top - want) > 2) window.scrollTo({ top: window.scrollY + r.top - want, left: 0, behavior: 'instant' });
-        win.scrollTop = 0; log.scrollTop = log.scrollHeight;
-      }
-      function later() { clearTimeout(t); t = setTimeout(fit, 120); }
-      input.addEventListener('focus', function () { if (mqMobile.matches) { root.classList.add('is-typing'); later(); setTimeout(fit, 450); } });
-      input.addEventListener('blur', function () { clearTimeout(t); root.classList.remove('is-typing'); win.style.height = ''; win.scrollTop = 0; });
-      win.addEventListener('scroll', function () { if (win.scrollTop) win.scrollTop = 0; }); // the frame itself never scrolls, only the message list
-      if (vv) vv.addEventListener('resize', later);
-    })();
     // live sound wave + microphone: assets/js/askwave.js (same component as the Canada page)
     log.addEventListener('click', function (e) { var a = e.target.closest('a[href^="#"]'); if (!a) return; });
     whenNear(log, greet);

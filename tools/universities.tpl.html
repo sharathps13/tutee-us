@@ -12,10 +12,21 @@
 <link rel="preload" href="assets/fonts/fraunces-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/css/site.css?v=20261113">
 <script>document.documentElement.classList.add('js');</script>
-<script>/* phones: the on-screen keyboard resizes the viewport; while a field is focused, don't let that resize re-measure the page (it was jumping the scroll) */
-(function(){var w=innerWidth;function typing(){var a=document.activeElement;return a&&(/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)||a.isContentEditable);}
-addEventListener('resize',function(e){if(innerWidth===w&&typing()){e.stopImmediatePropagation();}w=innerWidth;},true);
-if(window.visualViewport)visualViewport.addEventListener('resize',function(e){if(typing())e.stopImmediatePropagation();},true);})();</script>
+<script>/* phones: keyboard-safe typing (same guard as the UAE page). While a field is focused, or the keyboard is closing,
+   the page ignores keyboard resizes, blocks scripted scrolling, and freezes section heights so nothing jumps. */
+!function(){var W=innerWidth,add=window.addEventListener.bind(window);
+function typing(){var t=document.activeElement;return t&&/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)}
+window.addEventListener=function(type,fn,o){if(type==='resize'&&typeof fn==='function'){var f=fn;fn=function(e){var w=innerWidth;if(w!==W||!typing()&&!window.__kbClosing){W=w;return f.call(this,e)}}}return add(type,fn,o)};
+document.addEventListener('focusout',function(){window.__kbClosing=true;setTimeout(function(){window.__kbClosing=false},700)});
+var touch=matchMedia('(hover: none), (pointer: coarse)').matches;function hold(){return touch&&(typing()||window.__kbClosing)}
+var RO=window.ResizeObserver;if(RO)window.ResizeObserver=function(cb){return new RO(function(e,o){hold()||cb(e,o)})};
+var sT=window.scrollTo.bind(window),sB=window.scrollBy.bind(window),sI=Element.prototype.scrollIntoView;window.__rawScrollTo=sT;
+window.scrollTo=function(){if(!hold())return sT.apply(window,arguments)};window.scrollBy=function(){if(!hold())return sB.apply(window,arguments)};
+Element.prototype.scrollIntoView=function(){if(!hold())return sI.apply(this,arguments)};
+if(touch){document.documentElement.classList.add('is-touch');var frozen=[],t=0;
+document.addEventListener('focusin',function(e){if(!/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))return;clearTimeout(t);
+if(!frozen.length)document.querySelectorAll('main > *, .hero__stage, footer').forEach(function(el){var h=el.getBoundingClientRect().height;if(h){frozen.push([el,el.style.height,el.style.minHeight,el.style.maxHeight]);el.style.height=el.style.minHeight=el.style.maxHeight=h+'px'}})});
+document.addEventListener('focusout',function(){clearTimeout(t);t=setTimeout(function(){if(!typing()){frozen.forEach(function(f){f[0].style.height=f[1];f[0].style.minHeight=f[2];f[0].style.maxHeight=f[3]});frozen=[]}},900)})}}();</script>
 <script defer src="assets/js/universities-data.js?v=20261113"></script>
 <script defer src="assets/js/us-institutions.js?v=20261113"></script>
 <script defer src="assets/js/forms.js?v=20261113"></script>

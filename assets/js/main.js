@@ -1113,25 +1113,6 @@
     (function () { var full = input.getAttribute('placeholder'), mq = matchMedia('(max-width: 640px)');
       function fit() { input.setAttribute('placeholder', mq.matches ? 'Ask anything…' : full); }
       fit(); if (mq.addEventListener) mq.addEventListener('change', fit); })();
-    // phones: while typing, the chat window is sized to the space above the keyboard and kept in view, so the browser
-    // has no reason to scroll the page (it was jumping down on tap, then back up on every keystroke)
-    (function () {
-      var win = $('.ask__win', root), vv = window.visualViewport, t = 0; if (!win) return;
-      function typing() { return mqMobile.matches && document.activeElement === input; }
-      function fit() {
-        if (!typing()) return;
-        var h = vv ? vv.height : innerHeight, top = vv ? vv.offsetTop : 0;
-        win.style.height = Math.round(Math.max(280, Math.min(620, h - 16))) + 'px';
-        var r = win.getBoundingClientRect(), want = top + 8;
-        if (Math.abs(r.top - want) > 2) window.scrollTo({ top: window.scrollY + r.top - want, left: 0, behavior: 'instant' });
-        win.scrollTop = 0; log.scrollTop = log.scrollHeight;
-      }
-      function later() { clearTimeout(t); t = setTimeout(fit, 120); }
-      input.addEventListener('focus', function () { if (mqMobile.matches) { root.classList.add('is-typing'); later(); setTimeout(fit, 450); } });
-      input.addEventListener('blur', function () { clearTimeout(t); root.classList.remove('is-typing'); win.style.height = ''; win.scrollTop = 0; });
-      win.addEventListener('scroll', function () { if (win.scrollTop) win.scrollTop = 0; }); // the frame itself never scrolls, only the message list
-      if (vv) vv.addEventListener('resize', later);
-    })();
     // live sound wave + microphone: assets/js/askwave.js (same component as the Canada page)
     log.addEventListener('click', function (e) { var a = e.target.closest('a[href^="#"]'); if (!a) return; });
     whenNear(log, greet);
