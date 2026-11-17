@@ -245,39 +245,15 @@
   input:not([type=checkbox]):not([type=radio]), textarea, select { font-size: 16px !important; }
 }
 
-/* ===== phones: full-screen sheet for the chat and the enquiry form (keyboard-safe, page frozen underneath) ===== */
-.ask__tap { display: none; }
-.msheet { position: fixed; left: 0; right: 0; top: 0; height: 100vh; height: 100dvh; z-index: 350; display: flex; flex-direction: column;
-  background: #060d16; color: var(--ivory); overscroll-behavior: contain; animation: msheetIn .32s cubic-bezier(.2,.8,.2,1); }
-.msheet[hidden] { display: none; }
-@keyframes msheetIn { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
-.msheet__bar { flex: none; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; padding: calc(8px + env(safe-area-inset-top)) 12px 8px; border-bottom: 1px solid rgba(255,255,255,.08); }
-.msheet__x { display: inline-flex; align-items: center; gap: 4px; height: 38px; padding: 0 14px 0 8px; border-radius: 999px; background: rgba(255,255,255,.08); color: inherit; font: 700 14px/1 var(--f-ui); }
-.msheet__x svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.msheet__t { margin: 0; text-align: center; font: 800 11px/1 var(--f-ui); letter-spacing: .18em; text-transform: uppercase; opacity: .7; }
-.msheet__sp { width: 74px; }
-.msheet__body { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
-html.msheet-open .nav, html.msheet-open .fab, html.msheet-open .sbar, html.msheet-open .jrail { visibility: hidden; }
 
-/* chat inside the sheet: the window fills it */
-.msheet--chat .msheet__body { display: flex; overflow: hidden; }
-.msheet--chat .ask__win { flex: 1; height: auto !important; min-height: 0; border-radius: 0; box-shadow: none; }
-.msheet--chat .ask__win::before { display: none; }
-.msheet--chat .ask__win::after { inset: 0; border-radius: 0; }
-.msheet--chat .ask__input { margin-bottom: calc(12px + env(safe-area-inset-bottom)); }
-
-/* enquiry form inside the sheet: a flat, roomy page instead of the back of the card */
-.msheet--form { background: linear-gradient(180deg, #d9eed8, #bfe0c0); color: #17301f; }
-.msheet--form .msheet__bar { border-bottom-color: rgba(23,48,31,.14); }
-.msheet--form .msheet__x { background: rgba(23,48,31,.08); }
-.msheet--form .note__back.lead { position: relative !important; inset: auto !important; transform: none !important; -webkit-backface-visibility: visible; backface-visibility: visible;
-  display: flex; min-height: 100%; height: auto; overflow: visible; border-radius: 0; box-shadow: none; background: transparent; padding: 20px 18px calc(28px + env(safe-area-inset-bottom)); justify-content: flex-start; }
-.msheet--form .note__back.lead::before, .msheet--form .note__back.lead::after, .msheet--form .note__sheen, .msheet--form .note__turn { display: none; }
-.msheet--form .note__back [data-form-slot] { grid-template-columns: minmax(0, 1fr); }
-.msheet--form .note__back .lead__head h3 { font-size: 1.9rem; }
-
-@media (max-width: 760px) {
-  .ask__tap { display: block; position: absolute; inset: 0; z-index: 5; width: 100%; height: 100%; border-radius: inherit; background: transparent; cursor: text; }
-  .msheet .ask__tap { display: none; }
-  .ask__win { height: min(560px, calc(100svh - 120px)); }
-}
+/* enquiry card: once turned over it is a plain flat form (no 3D layers left), so phones place the caret and scroll correctly */
+.note.is-settled, .note.is-settled .note__tilt, .note.is-settled .note__card { perspective: none; transform: none !important; transform-style: flat; will-change: auto; }
+.note.is-settled .note__back.lead { transform: none !important; -webkit-backface-visibility: visible; backface-visibility: visible; }
+/* phones: the card turns faster so the form is ready sooner */
+@media (max-width: 760px) { .note__card { transition-duration: .6s; } .note.is-lifting .note__card { animation-duration: .6s; } }
+/* Ask Tutee while typing on a phone: no heavy spinning border behind the window */
+@media (max-width: 760px) { .ask.is-typing .ask__win::before, [data-ask].is-typing .ask__win::before { animation: none; } }
+.ask__log { min-height: 0; }
+@media (max-width: 760px) { .ask.is-typing .ask__chips, [data-ask].is-typing .ask__chips { padding-bottom: 8px; } }
+/* phones: the WhatsApp button steps aside while a field is being typed in (it covered the send button) */
+@media (max-width: 760px) { body:has(input:focus, textarea:focus) .fab { opacity: 0; pointer-events: none; } }
