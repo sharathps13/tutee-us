@@ -21,7 +21,8 @@
   }
   /* ---------------- smooth scroll + anchors ---------------- */
   var lenis = null;
-  if (motion && window.Lenis) {
+  // touch devices scroll natively: Lenis only smooths the mouse wheel, and on phones it fought the keyboard's focus scroll
+  if (motion && window.Lenis && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
     lenis = new window.Lenis({ lerp: 0.1, smoothWheel: true, prevent: function (n) { return !!(n.closest && n.closest('.swipe, .chat, .sheet, .apply, .menu, .qk')); } });
     lenis.on('scroll', ScrollTrigger.update);
     window.TCLenis = lenis;

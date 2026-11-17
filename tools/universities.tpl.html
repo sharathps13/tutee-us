@@ -12,6 +12,10 @@
 <link rel="preload" href="assets/fonts/fraunces-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/css/site.css?v=20261113">
 <script>document.documentElement.classList.add('js');</script>
+<script>/* phones: the on-screen keyboard resizes the viewport; while a field is focused, don't let that resize re-measure the page (it was jumping the scroll) */
+(function(){var w=innerWidth;function typing(){var a=document.activeElement;return a&&(/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)||a.isContentEditable);}
+addEventListener('resize',function(e){if(innerWidth===w&&typing()){e.stopImmediatePropagation();}w=innerWidth;},true);
+if(window.visualViewport)visualViewport.addEventListener('resize',function(e){if(typing())e.stopImmediatePropagation();},true);})();</script>
 <script defer src="assets/js/universities-data.js?v=20261113"></script>
 <script defer src="assets/js/us-institutions.js?v=20261113"></script>
 <script defer src="assets/js/forms.js?v=20261113"></script>

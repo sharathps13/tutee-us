@@ -2704,12 +2704,20 @@ body:has(.final) .foot { border-top: 0; }
 .hero__scroll .fp__txt { font-size: 9px; }
 /* Ask Tutee: the page keeps scrolling over the chat box */
 .ask__log { overscroll-behavior: auto; }
+/* phones: iOS zooms (and scrolls) the page when a field under 16px gets focus; keep every field at 16px */
+@media (max-width: 760px), (pointer: coarse) {
+  input:not([type=checkbox]):not([type=radio]), textarea, select { font-size: 16px !important; }
+}
 
 </style>
 <script>
   // Old hash-route links (pageus.netlify.app/#/universities) keep working.
   document.documentElement.classList.add('js');
 </script>
+<script>/* phones: the on-screen keyboard resizes the viewport; while a field is focused, don't let that resize re-measure the page (it was jumping the scroll) */
+(function(){var w=innerWidth;function typing(){var a=document.activeElement;return a&&(/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)||a.isContentEditable);}
+addEventListener('resize',function(e){if(innerWidth===w&&typing()){e.stopImmediatePropagation();}w=innerWidth;},true);
+if(window.visualViewport)visualViewport.addEventListener('resize',function(e){if(typing())e.stopImmediatePropagation();},true);})();</script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -4625,7 +4633,8 @@ window.TC_ALL = {cols:["id","name","city","st","web","control","level","size","c
   }
   /* ---------------- smooth scroll + anchors ---------------- */
   var lenis = null;
-  if (motion && window.Lenis) {
+  // touch devices scroll natively: Lenis only smooths the mouse wheel, and on phones it fought the keyboard's focus scroll
+  if (motion && window.Lenis && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
     lenis = new window.Lenis({ lerp: 0.1, smoothWheel: true, prevent: function (n) { return !!(n.closest && n.closest('.swipe, .chat, .sheet, .apply, .menu, .qk')); } });
     lenis.on('scroll', ScrollTrigger.update);
     window.TCLenis = lenis;

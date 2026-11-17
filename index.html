@@ -22,6 +22,10 @@
   if (location.hash === '#/universities') location.replace('universities.html');
   document.documentElement.classList.add('js');
 </script>
+<script>/* phones: the on-screen keyboard resizes the viewport; while a field is focused, don't let that resize re-measure the page (it was jumping the scroll) */
+(function(){var w=innerWidth;function typing(){var a=document.activeElement;return a&&(/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)||a.isContentEditable);}
+addEventListener('resize',function(e){if(innerWidth===w&&typing()){e.stopImmediatePropagation();}w=innerWidth;},true);
+if(window.visualViewport)visualViewport.addEventListener('resize',function(e){if(typing())e.stopImmediatePropagation();},true);})();</script>
 <script defer src="assets/js/vendor/gsap.min.js?v=20261113"></script>
 <script defer src="assets/js/vendor/ScrollTrigger.min.js?v=20261113"></script>
 <script defer src="assets/js/vendor/lenis.min.js?v=20261113"></script>

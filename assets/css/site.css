@@ -2689,3 +2689,7 @@ body:has(.final) .foot { border-top: 0; }
 .hero__scroll .fp__txt { font-size: 9px; }
 /* Ask Tutee: the page keeps scrolling over the chat box */
 .ask__log { overscroll-behavior: auto; }
+/* phones: iOS zooms (and scrolls) the page when a field under 16px gets focus; keep every field at 16px */
+@media (max-width: 760px), (pointer: coarse) {
+  input:not([type=checkbox]):not([type=radio]), textarea, select { font-size: 16px !important; }
+}
