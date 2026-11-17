@@ -129,7 +129,7 @@
     if (search) search.addEventListener('input', function () { filter(search.value); });
     document.addEventListener('pointerdown', function (e) { if (!wrap.contains(e.target) && !pop.contains(e.target)) close(false); });
     window.addEventListener('resize', function () { close(false); });
-    window.addEventListener('scroll', function () { if (!pop.hidden) { var r = wrap.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) close(false); else place(); } }, { passive: true });
+    document.addEventListener('scroll', function () { if (!pop.hidden) { var r = wrap.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) close(false); else place(); } }, { passive: true, capture: true }); // capture: also follows scrolling inside the phone form sheet
     // keep the custom face in step when code changes the select (value set, options added, form reset)
     var proto = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
     if (proto && proto.set) Object.defineProperty(sel, 'value', { configurable: true, get: function () { return proto.get.call(sel); }, set: function (v) { proto.set.call(sel, v); sync(); } });
@@ -303,7 +303,7 @@
       });
       document.addEventListener('pointerdown', function (e) { if (!uPop.hidden && !uPop.contains(e.target) && !uBtn.contains(e.target)) closeU(false); });
       window.addEventListener('resize', function () { closeU(false); });
-      window.addEventListener('scroll', function () { if (!uPop.hidden) { var r = uBtn.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) closeU(false); else placeU(); } }, { passive: true });
+      document.addEventListener('scroll', function () { if (!uPop.hidden) { var r = uBtn.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) closeU(false); else placeU(); } }, { passive: true, capture: true });
     }
     function sync() {
       dest.value = selection.length ? selection.join(', ') : 'General US Inquiry';

@@ -19,6 +19,60 @@
     var done = false, run = function () { if (done) return; done = true; io.disconnect(); fn(); };
     var io = new IntersectionObserver(function (es) { if (es[0].isIntersecting) run(); }, { rootMargin: '150% 0px' }); io.observe(el);
   }
+  /* ---------------- phones: full-screen sheet for typing ----------------
+     Typing inside the long, animated page made phones jump around (keyboard + scroll effects). On phones the chat and
+     the enquiry form open in their own full-screen sheet: the page underneath is frozen in place, so nothing can scroll
+     while the visitor types, and closing the sheet puts them back exactly where they were. */
+  var MSheet = (function () {
+    var wrap = null, body, titleEl, cur = null, marker = null, holder = null, y = 0, onClose = null, vv = window.visualViewport;
+    function fit() { // follow the visible area above the on-screen keyboard
+      if (!wrap || !cur) return;
+      wrap.style.height = (vv ? vv.height : innerHeight) + 'px';
+      wrap.style.top = (vv ? vv.offsetTop : 0) + 'px';
+    }
+    function build() {
+      wrap = document.createElement('div'); wrap.className = 'msheet'; wrap.hidden = true;
+      wrap.setAttribute('role', 'dialog'); wrap.setAttribute('aria-modal', 'true');
+      wrap.innerHTML = '<div class="msheet__bar"><button type="button" class="msheet__x" data-ms-x><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4.5 7 10l5.5 5.5"/></svg><span>Back</span></button>' +
+        '<p class="msheet__t" data-ms-t></p><span class="msheet__sp" aria-hidden="true"></span></div><div class="msheet__body" data-ms-body></div>';
+      document.body.appendChild(wrap);
+      body = wrap.querySelector('[data-ms-body]'); titleEl = wrap.querySelector('[data-ms-t]');
+      wrap.querySelector('[data-ms-x]').addEventListener('click', function () { close(); });
+      // in-page links inside the sheet (e.g. "Talk to a counsellor") close it first, then the page scrolls to them
+      wrap.addEventListener('click', function (e) { var a = e.target.closest && e.target.closest('a[href^="#"]'); if (a) close(); }, true);
+      if (vv) { vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); }
+    }
+    function open(el, o) {
+      o = o || {}; if (cur === el) return; if (cur) close();
+      if (!wrap) build();
+      cur = el; onClose = o.onClose || null;
+      marker = document.createComment('msheet'); el.parentNode.insertBefore(marker, el);
+      if (o.keepSpace) { holder = document.createElement('div'); holder.className = 'msheet__hold'; holder.style.height = el.offsetHeight + 'px'; el.parentNode.insertBefore(holder, marker); }
+      titleEl.textContent = o.title || '';
+      wrap.className = 'msheet' + (o.cls ? ' ' + o.cls : '');
+      body.appendChild(el); body.scrollTop = 0;
+      y = window.scrollY;
+      var b = document.body.style; b.position = 'fixed'; b.top = (-y) + 'px'; b.left = '0'; b.right = '0'; b.width = '100%';
+      document.documentElement.classList.add('msheet-open');
+      wrap.hidden = false; fit();
+    }
+    function close() {
+      if (!cur) return;
+      var el = cur; cur = null;
+      var a = document.activeElement; if (a && el.contains(a)) try { a.blur(); } catch (e) {}
+      marker.parentNode.insertBefore(el, marker); marker.parentNode.removeChild(marker); marker = null;
+      if (holder) { holder.parentNode.removeChild(holder); holder = null; }
+      wrap.hidden = true;
+      var b = document.body.style; b.position = ''; b.top = ''; b.left = ''; b.right = ''; b.width = '';
+      document.documentElement.classList.remove('msheet-open');
+      window.scrollTo({ top: y, left: 0, behavior: 'instant' });
+      if (onClose) { var f = onClose; onClose = null; f(); }
+    }
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && cur) close(); });
+    return { open: open, close: close, isOpen: function (el) { return el ? cur === el : !!cur; } };
+  })();
+  window.TCSheet = MSheet;
+
   /* ---------------- smooth scroll + anchors ---------------- */
   var lenis = null;
   // touch devices scroll natively: Lenis only smooths the mouse wheel, and on phones it fought the keyboard's focus scroll
@@ -261,6 +315,15 @@
     $$('[data-note-serial]', note).forEach(function (n) { n.textContent = serial; });
     function setInert(el, on) { if (on) { el.setAttribute('inert', ''); el.setAttribute('aria-hidden', 'true'); } else { el.removeAttribute('inert'); el.removeAttribute('aria-hidden'); } }
     function set(on, focus) {
+      if (mqMobile.matches) { // phones: the form opens full-screen instead of on the back of the card
+        if (on) {
+          if (MSheet.isOpen(back)) return;
+          note.classList.remove('is-flipped', 'is-settled');
+          flipped = true; setInert(back, false); openBtn.setAttribute('aria-expanded', 'true');
+          MSheet.open(back, { cls: 'msheet--form', title: 'Free counselling', onClose: function () { flipped = false; setInert(back, true); openBtn.setAttribute('aria-expanded', 'false'); } });
+        } else if (MSheet.isOpen(back)) MSheet.close();
+        return;
+      }
       if (on === flipped) { if (on && focus) focusFirst(); return; }
       flipped = on;
       clearTimeout(settleT);
@@ -1113,6 +1176,18 @@
     (function () { var full = input.getAttribute('placeholder'), mq = matchMedia('(max-width: 640px)');
       function fit() { input.setAttribute('placeholder', mq.matches ? 'Ask anything…' : full); }
       fit(); if (mq.addEventListener) mq.addEventListener('change', fit); })();
+    // phones: tapping the type bar opens the chat full-screen (keyboard-safe); the inline box stays as a preview
+    (function () {
+      var win = $('.ask__win', root); if (!win) return;
+      var tap = document.createElement('button'); tap.type = 'button'; tap.className = 'ask__tap'; tap.setAttribute('aria-label', 'Open the chat to type your question');
+      form.appendChild(tap);
+      tap.addEventListener('click', function () {
+        if (!mqMobile.matches) return;
+        MSheet.open(win, { keepSpace: true, cls: 'msheet--chat', title: 'Ask Tutee' });
+        try { input.focus({ preventScroll: true }); } catch (e) {} // inside the tap, so phones raise the keyboard
+        log.scrollTop = log.scrollHeight;
+      });
+    })();
     // live sound wave + microphone: assets/js/askwave.js (same component as the Canada page)
     log.addEventListener('click', function (e) { var a = e.target.closest('a[href^="#"]'); if (!a) return; });
     whenNear(log, greet);

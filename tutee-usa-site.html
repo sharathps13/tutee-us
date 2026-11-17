@@ -2709,6 +2709,43 @@ body:has(.final) .foot { border-top: 0; }
   input:not([type=checkbox]):not([type=radio]), textarea, select { font-size: 16px !important; }
 }
 
+/* ===== phones: full-screen sheet for the chat and the enquiry form (keyboard-safe, page frozen underneath) ===== */
+.ask__tap { display: none; }
+.msheet { position: fixed; left: 0; right: 0; top: 0; height: 100vh; height: 100dvh; z-index: 350; display: flex; flex-direction: column;
+  background: #060d16; color: var(--ivory); overscroll-behavior: contain; animation: msheetIn .32s cubic-bezier(.2,.8,.2,1); }
+.msheet[hidden] { display: none; }
+@keyframes msheetIn { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+.msheet__bar { flex: none; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; padding: calc(8px + env(safe-area-inset-top)) 12px 8px; border-bottom: 1px solid rgba(255,255,255,.08); }
+.msheet__x { display: inline-flex; align-items: center; gap: 4px; height: 38px; padding: 0 14px 0 8px; border-radius: 999px; background: rgba(255,255,255,.08); color: inherit; font: 700 14px/1 var(--f-ui); }
+.msheet__x svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.msheet__t { margin: 0; text-align: center; font: 800 11px/1 var(--f-ui); letter-spacing: .18em; text-transform: uppercase; opacity: .7; }
+.msheet__sp { width: 74px; }
+.msheet__body { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+html.msheet-open .nav, html.msheet-open .fab, html.msheet-open .sbar, html.msheet-open .jrail { visibility: hidden; }
+
+/* chat inside the sheet: the window fills it */
+.msheet--chat .msheet__body { display: flex; overflow: hidden; }
+.msheet--chat .ask__win { flex: 1; height: auto !important; min-height: 0; border-radius: 0; box-shadow: none; }
+.msheet--chat .ask__win::before { display: none; }
+.msheet--chat .ask__win::after { inset: 0; border-radius: 0; }
+.msheet--chat .ask__input { margin-bottom: calc(12px + env(safe-area-inset-bottom)); }
+
+/* enquiry form inside the sheet: a flat, roomy page instead of the back of the card */
+.msheet--form { background: linear-gradient(180deg, #d9eed8, #bfe0c0); color: #17301f; }
+.msheet--form .msheet__bar { border-bottom-color: rgba(23,48,31,.14); }
+.msheet--form .msheet__x { background: rgba(23,48,31,.08); }
+.msheet--form .note__back.lead { position: relative !important; inset: auto !important; transform: none !important; -webkit-backface-visibility: visible; backface-visibility: visible;
+  display: flex; min-height: 100%; height: auto; overflow: visible; border-radius: 0; box-shadow: none; background: transparent; padding: 20px 18px calc(28px + env(safe-area-inset-bottom)); justify-content: flex-start; }
+.msheet--form .note__back.lead::before, .msheet--form .note__back.lead::after, .msheet--form .note__sheen, .msheet--form .note__turn { display: none; }
+.msheet--form .note__back [data-form-slot] { grid-template-columns: minmax(0, 1fr); }
+.msheet--form .note__back .lead__head h3 { font-size: 1.9rem; }
+
+@media (max-width: 760px) {
+  .ask__tap { display: block; position: absolute; inset: 0; z-index: 5; width: 100%; height: 100%; border-radius: inherit; background: transparent; cursor: text; }
+  .msheet .ask__tap { display: none; }
+  .ask__win { height: min(560px, calc(100svh - 120px)); }
+}
+
 </style>
 <script>
   // Old hash-route links (pageus.netlify.app/#/universities) keep working.
@@ -3938,7 +3975,7 @@ window.TC_ALL = {cols:["id","name","city","st","web","control","level","size","c
     if (search) search.addEventListener('input', function () { filter(search.value); });
     document.addEventListener('pointerdown', function (e) { if (!wrap.contains(e.target) && !pop.contains(e.target)) close(false); });
     window.addEventListener('resize', function () { close(false); });
-    window.addEventListener('scroll', function () { if (!pop.hidden) { var r = wrap.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) close(false); else place(); } }, { passive: true });
+    document.addEventListener('scroll', function () { if (!pop.hidden) { var r = wrap.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) close(false); else place(); } }, { passive: true, capture: true }); // capture: also follows scrolling inside the phone form sheet
     // keep the custom face in step when code changes the select (value set, options added, form reset)
     var proto = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
     if (proto && proto.set) Object.defineProperty(sel, 'value', { configurable: true, get: function () { return proto.get.call(sel); }, set: function (v) { proto.set.call(sel, v); sync(); } });
@@ -4112,7 +4149,7 @@ window.TC_ALL = {cols:["id","name","city","st","web","control","level","size","c
       });
       document.addEventListener('pointerdown', function (e) { if (!uPop.hidden && !uPop.contains(e.target) && !uBtn.contains(e.target)) closeU(false); });
       window.addEventListener('resize', function () { closeU(false); });
-      window.addEventListener('scroll', function () { if (!uPop.hidden) { var r = uBtn.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) closeU(false); else placeU(); } }, { passive: true });
+      document.addEventListener('scroll', function () { if (!uPop.hidden) { var r = uBtn.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) closeU(false); else placeU(); } }, { passive: true, capture: true });
     }
     function sync() {
       dest.value = selection.length ? selection.join(', ') : 'General US Inquiry';
@@ -4631,6 +4668,60 @@ window.TC_ALL = {cols:["id","name","city","st","web","control","level","size","c
     var done = false, run = function () { if (done) return; done = true; io.disconnect(); fn(); };
     var io = new IntersectionObserver(function (es) { if (es[0].isIntersecting) run(); }, { rootMargin: '150% 0px' }); io.observe(el);
   }
+  /* ---------------- phones: full-screen sheet for typing ----------------
+     Typing inside the long, animated page made phones jump around (keyboard + scroll effects). On phones the chat and
+     the enquiry form open in their own full-screen sheet: the page underneath is frozen in place, so nothing can scroll
+     while the visitor types, and closing the sheet puts them back exactly where they were. */
+  var MSheet = (function () {
+    var wrap = null, body, titleEl, cur = null, marker = null, holder = null, y = 0, onClose = null, vv = window.visualViewport;
+    function fit() { // follow the visible area above the on-screen keyboard
+      if (!wrap || !cur) return;
+      wrap.style.height = (vv ? vv.height : innerHeight) + 'px';
+      wrap.style.top = (vv ? vv.offsetTop : 0) + 'px';
+    }
+    function build() {
+      wrap = document.createElement('div'); wrap.className = 'msheet'; wrap.hidden = true;
+      wrap.setAttribute('role', 'dialog'); wrap.setAttribute('aria-modal', 'true');
+      wrap.innerHTML = '<div class="msheet__bar"><button type="button" class="msheet__x" data-ms-x><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4.5 7 10l5.5 5.5"/></svg><span>Back</span></button>' +
+        '<p class="msheet__t" data-ms-t></p><span class="msheet__sp" aria-hidden="true"></span></div><div class="msheet__body" data-ms-body></div>';
+      document.body.appendChild(wrap);
+      body = wrap.querySelector('[data-ms-body]'); titleEl = wrap.querySelector('[data-ms-t]');
+      wrap.querySelector('[data-ms-x]').addEventListener('click', function () { close(); });
+      // in-page links inside the sheet (e.g. "Talk to a counsellor") close it first, then the page scrolls to them
+      wrap.addEventListener('click', function (e) { var a = e.target.closest && e.target.closest('a[href^="#"]'); if (a) close(); }, true);
+      if (vv) { vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); }
+    }
+    function open(el, o) {
+      o = o || {}; if (cur === el) return; if (cur) close();
+      if (!wrap) build();
+      cur = el; onClose = o.onClose || null;
+      marker = document.createComment('msheet'); el.parentNode.insertBefore(marker, el);
+      if (o.keepSpace) { holder = document.createElement('div'); holder.className = 'msheet__hold'; holder.style.height = el.offsetHeight + 'px'; el.parentNode.insertBefore(holder, marker); }
+      titleEl.textContent = o.title || '';
+      wrap.className = 'msheet' + (o.cls ? ' ' + o.cls : '');
+      body.appendChild(el); body.scrollTop = 0;
+      y = window.scrollY;
+      var b = document.body.style; b.position = 'fixed'; b.top = (-y) + 'px'; b.left = '0'; b.right = '0'; b.width = '100%';
+      document.documentElement.classList.add('msheet-open');
+      wrap.hidden = false; fit();
+    }
+    function close() {
+      if (!cur) return;
+      var el = cur; cur = null;
+      var a = document.activeElement; if (a && el.contains(a)) try { a.blur(); } catch (e) {}
+      marker.parentNode.insertBefore(el, marker); marker.parentNode.removeChild(marker); marker = null;
+      if (holder) { holder.parentNode.removeChild(holder); holder = null; }
+      wrap.hidden = true;
+      var b = document.body.style; b.position = ''; b.top = ''; b.left = ''; b.right = ''; b.width = '';
+      document.documentElement.classList.remove('msheet-open');
+      window.scrollTo({ top: y, left: 0, behavior: 'instant' });
+      if (onClose) { var f = onClose; onClose = null; f(); }
+    }
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && cur) close(); });
+    return { open: open, close: close, isOpen: function (el) { return el ? cur === el : !!cur; } };
+  })();
+  window.TCSheet = MSheet;
+
   /* ---------------- smooth scroll + anchors ---------------- */
   var lenis = null;
   // touch devices scroll natively: Lenis only smooths the mouse wheel, and on phones it fought the keyboard's focus scroll
@@ -4873,6 +4964,15 @@ window.TC_ALL = {cols:["id","name","city","st","web","control","level","size","c
     $$('[data-note-serial]', note).forEach(function (n) { n.textContent = serial; });
     function setInert(el, on) { if (on) { el.setAttribute('inert', ''); el.setAttribute('aria-hidden', 'true'); } else { el.removeAttribute('inert'); el.removeAttribute('aria-hidden'); } }
     function set(on, focus) {
+      if (mqMobile.matches) { // phones: the form opens full-screen instead of on the back of the card
+        if (on) {
+          if (MSheet.isOpen(back)) return;
+          note.classList.remove('is-flipped', 'is-settled');
+          flipped = true; setInert(back, false); openBtn.setAttribute('aria-expanded', 'true');
+          MSheet.open(back, { cls: 'msheet--form', title: 'Free counselling', onClose: function () { flipped = false; setInert(back, true); openBtn.setAttribute('aria-expanded', 'false'); } });
+        } else if (MSheet.isOpen(back)) MSheet.close();
+        return;
+      }
       if (on === flipped) { if (on && focus) focusFirst(); return; }
       flipped = on;
       clearTimeout(settleT);
@@ -5725,6 +5825,18 @@ window.TC_ALL = {cols:["id","name","city","st","web","control","level","size","c
     (function () { var full = input.getAttribute('placeholder'), mq = matchMedia('(max-width: 640px)');
       function fit() { input.setAttribute('placeholder', mq.matches ? 'Ask anything…' : full); }
       fit(); if (mq.addEventListener) mq.addEventListener('change', fit); })();
+    // phones: tapping the type bar opens the chat full-screen (keyboard-safe); the inline box stays as a preview
+    (function () {
+      var win = $('.ask__win', root); if (!win) return;
+      var tap = document.createElement('button'); tap.type = 'button'; tap.className = 'ask__tap'; tap.setAttribute('aria-label', 'Open the chat to type your question');
+      form.appendChild(tap);
+      tap.addEventListener('click', function () {
+        if (!mqMobile.matches) return;
+        MSheet.open(win, { keepSpace: true, cls: 'msheet--chat', title: 'Ask Tutee' });
+        try { input.focus({ preventScroll: true }); } catch (e) {} // inside the tap, so phones raise the keyboard
+        log.scrollTop = log.scrollHeight;
+      });
+    })();
     // live sound wave + microphone: assets/js/askwave.js (same component as the Canada page)
     log.addEventListener('click', function (e) { var a = e.target.closest('a[href^="#"]'); if (!a) return; });
     whenNear(log, greet);
